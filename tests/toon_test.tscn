@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://props/tankard.tscn" id="1"]
+
+[sub_resource type="Environment" id="Environment_bg"]
+background_mode = 1
+background_color = Color(0.4, 0.27, 0.14, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0, 0, 0, 1)
+tonemap_mode = 0
+
+[node name="ToonTest" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_bg")
+
+[node name="Lantern" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.707107, -0.408248, 0.57735, 0, 0.816497, 0.57735, -0.707107, -0.408248, 0.57735, 0, 2, 0)
+light_color = Color(1, 0.88, 0.68, 1)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0.8, 2.6)
+fov = 40.0
+
+[node name="Tankard" parent="." instance=ExtResource("1")]
+transform = Transform3D(0, 0, 3, 0, 3, 0, -3, 0, 0, 0, 0, 0)

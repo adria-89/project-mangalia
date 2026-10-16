@@ -1,0 +1,23 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://21f3ltnffc8u"]
+
+[ext_resource type="Shader" uid="uid://7awep4qjbgo7" path="res://shaders/toon.gdshader" id="1"]
+[ext_resource type="Shader" uid="uid://dypgqh1glua8o" path="res://shaders/outline.gdshader" id="2"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_outline"]
+render_priority = 0
+shader = ExtResource("2")
+shader_parameter/outline_color = Color(0, 0, 0, 1)
+shader_parameter/thickness_px = 2.0
+
+[resource]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_outline")
+shader = ExtResource("1")
+shader_parameter/albedo = Color(0.62, 0.42, 0.24, 1)
+shader_parameter/use_texture = false
+shader_parameter/use_lighting = true
+shader_parameter/shadow_color = Color(0.45, 0.33, 0.35, 1)
+shader_parameter/bands = 1
+shader_parameter/shadow_threshold = 0.1
+shader_parameter/highlight_strength = 0.0
+shader_parameter/highlight_size = 0.2

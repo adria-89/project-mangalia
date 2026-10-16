@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/speech_bubble.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ui/speech_bubble_right.png" id="2"]
+[ext_resource type="FontFile" path="res://assets/ui/alagard.ttf" id="3"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_text"]
+font = ExtResource("3")
+font_size = 16
+font_color = Color(0.15, 0.12, 0.08, 1)
+line_spacing = 0.0
+
+[node name="SpeechBubble" type="Node2D"]
+script = ExtResource("1")
+
+[node name="Bubble" type="Node2D" parent="."]
+
+[node name="Sprite" type="Sprite2D" parent="Bubble"]
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("2")
+centered = false
+offset = Vector2(-10, -185)
+
+[node name="Label" type="Label" parent="Bubble"]
+offset_left = 6.0
+offset_top = -128.0
+offset_right = 158.0
+offset_bottom = -30.0
+label_settings = SubResource("LabelSettings_text")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="Tick" type="AudioStreamPlayer" parent="."]
+max_polyphony = 4

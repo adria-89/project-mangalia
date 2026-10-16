@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://dnwlba0wa8g70"]
+
+[ext_resource type="Script" uid="uid://degxql52sjhgg" path="res://customer/customer.gd" id="1"]
+[ext_resource type="Shader" uid="uid://n5ioaqnsmjm7" path="res://customer/jiggle.gdshader" id="2"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_body"]
+resource_local_to_scene = true
+shader = ExtResource("2")
+shader_parameter/spring_offset = Vector2(0, 0)
+shader_parameter/squish = 0.0
+shader_parameter/chest_bottom = 1.0
+shader_parameter/chest_center_x = 0.5
+shader_parameter/front_only = false
+shader_parameter/front_threshold = 0.35
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_front"]
+resource_local_to_scene = true
+shader = ExtResource("2")
+shader_parameter/spring_offset = Vector2(0, 0)
+shader_parameter/squish = 0.0
+shader_parameter/chest_bottom = 1.0
+shader_parameter/chest_center_x = 0.5
+shader_parameter/front_only = true
+shader_parameter/front_threshold = 0.35
+
+[node name="Customer" type="Node2D" unique_id=1648691995]
+script = ExtResource("1")
+
+[node name="Body" type="Sprite2D" parent="." unique_id=523011215]
+material = SubResource("ShaderMaterial_body")
+
+[node name="Front" type="Sprite2D" parent="Body" unique_id=1672898092]
+z_index = 2
+material = SubResource("ShaderMaterial_front")
+
+[node name="Voice" type="AudioStreamPlayer" parent="." unique_id=1923174810]
+max_polyphony = 4

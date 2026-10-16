@@ -1,0 +1,78 @@
+[gd_scene format=3 uid="uid://dmxwkg1w27whp"]
+
+[ext_resource type="Script" uid="uid://c5ymhuqa4sn42" path="res://main.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://cfp7hyal06oc" path="res://assets/bar/bar_bg.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://bo766nueh8kw7" path="res://assets/bar/bar_counter.png" id="3"]
+[ext_resource type="Texture2D" uid="uid://g5ikeleafe8m" path="res://assets/bar/water_wave.png" id="3_272bh"]
+[ext_resource type="PackedScene" path="res://ui/speech_bubble.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://props/bar_props.tscn" id="6"]
+[ext_resource type="Texture2D" uid="uid://cxijx0h1p8mef" path="res://assets/bar/sky.png" id="7"]
+[ext_resource type="Script" uid="uid://c6hpex17dlg34" path="res://scenery/wave_layers.gd" id="8"]
+[ext_resource type="PackedScene" path="res://scenery/tap_tray.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://ui/money_hud.tscn" id="10"]
+[ext_resource type="AudioStream" path="res://audio/music/this_song_was_used_in_tf2.wav" id="11"]
+[ext_resource type="Script" path="res://scenery/ship_view.gd" id="12"]
+[ext_resource type="PackedScene" path="res://ui/shift_clock.tscn" id="13"]
+[ext_resource type="PackedScene" path="res://ui/night_card.tscn" id="14"]
+[ext_resource type="Texture2D" path="res://assets/bar/sky_night.png" id="15"]
+[ext_resource type="PackedScene" path="res://ui/kiss_layer.tscn" id="16"]
+
+[node name="Main" type="Node2D" unique_id=368604310]
+script = ExtResource("1")
+
+[node name="Sky" type="Sprite2D" parent="." unique_id=1533952744]
+texture = ExtResource("7")
+centered = false
+
+[node name="SkyNight" type="Sprite2D" parent="Sky"]
+modulate = Color(1, 1, 1, 0)
+texture = ExtResource("15")
+centered = false
+
+[node name="Waves" type="Sprite2D" parent="." unique_id=2116595481]
+position = Vector2(37.000004, 63)
+scale = Vector2(0.33703712, 0.42250004)
+texture = ExtResource("3_272bh")
+centered = false
+script = ExtResource("8")
+
+[node name="Background" type="Sprite2D" parent="." unique_id=154766260]
+texture = ExtResource("2")
+centered = false
+
+[node name="Counter" type="Sprite2D" parent="." unique_id=1826051393]
+z_index = 1
+texture = ExtResource("3")
+centered = false
+
+[node name="TapTray" parent="." unique_id=2025248470 instance=ExtResource("9")]
+z_index = 4
+position = Vector2(0, 10)
+bar_props_path = NodePath("../BarProps")
+
+[node name="BarProps" parent="." unique_id=2199955 instance=ExtResource("6")]
+z_index = 3
+
+[node name="SpeechBubble" parent="." unique_id=1369868387 instance=ExtResource("5")]
+z_index = 4
+position = Vector2(356, 149)
+
+[node name="MoneyHud" parent="." instance=ExtResource("10")]
+z_index = 5
+
+[node name="Music" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("11")
+volume_db = -8.0
+autoplay = true
+process_mode = 3
+
+[node name="ShipView" type="Node" parent="."]
+script = ExtResource("12")
+outside = Array[NodePath]([NodePath("../Sky"), NodePath("../Waves")])
+
+[node name="ShiftClock" parent="." instance=ExtResource("13")]
+z_index = 5
+
+[node name="NightCard" parent="." instance=ExtResource("14")]
+
+[node name="KissLayer" parent="." instance=ExtResource("16")]

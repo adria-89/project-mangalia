@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="CustomerData" format=3 uid="uid://ckc2twmvbapho"]
+
+[ext_resource type="Script" uid="uid://dqax1q7e38by4" path="res://customer/customer_data.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://rebcxnmjv76y" path="res://assets/chars/foid_placeholder2.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://cdihx1okpmuyc" path="res://assets/chars/foid_placeholder2_mask.png" id="3"]
+[ext_resource type="Script" uid="uid://dbc5py7jp16ic" path="res://customer/dialogue_set.gd" id="4"]
+[ext_resource type="Texture2D" uid="uid://djseeaqdbhnx7" path="res://assets/chars/foid_placeholder2_mask_eyes.png" id="5"]
+
+[sub_resource type="Resource" id="Set_again"]
+script = ExtResource("4")
+lines = PackedStringArray("You again.", "...Not that I came here to see you.", "Don\'t talk. Just pour.")
+order_line = "Beer. Cold. Like my heart."
+
+[sub_resource type="Resource" id="Set_club"]
+script = ExtResource("4")
+lines = PackedStringArray("The walrus owes me money.", "He owes everyone in this port money.", "You don\'t. That\'s the only reason I like you.", "I don\'t like you.")
+order_line = "Beer. And don't spill it this time."
+
+[sub_resource type="Resource" id="Set_pig"]
+script = ExtResource("4")
+lines = PackedStringArray("Went to La Lidia for fish.", "They sold me a pig.", "You could come help me with the pig. Not a date. Pig help.")
+order_line = "Beer. Don't mention the pig."
+
+[sub_resource type="Resource" id="Set_neighbor"]
+script = ExtResource("4")
+lines = PackedStringArray("My neighbor won\'t stop singing.", "Six hours. Sea shanties. All off key.", "Your voice is... tolerable. Say something. No. Stop.")
+order_line = "Beer. Full. Pour it nicely. For once."
+
+[resource]
+script = ExtResource("1")
+display_name = "Cat"
+texture = ExtResource("2")
+mask = ExtResource("3")
+eyes_mask = ExtResource("5")
+mouth = Vector2(122, 112)
+lines = PackedStringArray("Where\'s the walrus.", "Don\'t smile at me. I can hear you smiling.", "...Fine. Once. Then stop.", "Rum. In a clean glass. If you have one.", "You don\'t have one, do you.")
+extra_sets = Array[ExtResource("4")]([SubResource("Set_again"), SubResource("Set_club"), SubResource("Set_pig"), SubResource("Set_neighbor")])
+order_line = "Beer. Full. Don't make me ask twice."
+happy_lines = PackedStringArray("...Fine. That\'s acceptable.")
+meh_lines = PackedStringArray("I\'ve had worse. At funerals.")
+angry_lines = PackedStringArray("This is an insult to my ancestors.")
+tip_good = 2
+voice_pitch = 0.8
+jiggle_stiffness = 190.0
+jiggle_damping = 8.0
+jiggle_inertia = 0.8
+jiggle_max = 5.0

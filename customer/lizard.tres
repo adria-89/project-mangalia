@@ -1,0 +1,57 @@
+[gd_resource type="Resource" script_class="CustomerData" format=3 uid="uid://binb1qc67r3lq"]
+
+[ext_resource type="Script" uid="uid://dqax1q7e38by4" path="res://customer/customer_data.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://3v02vrmx5ws5" path="res://assets/chars/lizard/lizard_default.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://uij0yc3iiyq" path="res://assets/chars/lizard/lizard_mask.png" id="3"]
+[ext_resource type="Script" uid="uid://dbc5py7jp16ic" path="res://customer/dialogue_set.gd" id="4"]
+[ext_resource type="Texture2D" uid="uid://bneesigqf4fk4" path="res://assets/chars/lizard/lizard_mask_eyes.png" id="5"]
+[ext_resource type="Texture2D" uid="uid://cr4s1y827bbey" path="res://assets/chars/lizard/lizard_eyes_closed.png" id="6"]
+[ext_resource type="Texture2D" uid="uid://cs866v6rlarbg" path="res://assets/chars/lizard/lizard_kiss.png" id="7"]
+[ext_resource type="Texture2D" uid="uid://uffh5lq5lnhw" path="res://assets/chars/lizard/lizard_blush.png" id="8"]
+[ext_resource type="Texture2D" uid="uid://2otheq8kpbgk" path="res://assets/chars/lizard/lizard_eyes_wink.png" id="9"]
+[ext_resource type="Texture2D" uid="uid://ct4nwx4oh57aw" path="res://assets/chars/lizard/lizard_nervous.png" id="10"]
+
+[sub_resource type="Resource" id="Set_crab"]
+script = ExtResource("4")
+lines = PackedStringArray("Ahoy again! I\'m back! Did you miss me? Say yes.", "I fought a crab today. The crab won.", "...You\'d have saved me, right? Right?")
+order_line = "Beer! For my wounds!"
+
+[sub_resource type="Resource" id="Set_boot"]
+script = ExtResource("4")
+lines = PackedStringArray("Guess what. GUESS.", "I found a boot in the harbor! Fits perfect.", "Like us! ...Forget I said that.", "There was a fish in it too. I kept him.")
+order_line = "One beer! The fish doesn't drink."
+
+[sub_resource type="Resource" id="Set_shells"]
+script = ExtResource("4")
+lines = PackedStringArray("Is the big guy back yet? No? Good.", "More of you for me!", "I told him I\'d pay him back in shells. He said RUDE things.")
+order_line = "Beer me! I'll pay in shells! Or a kiss! ...Shells!"
+
+[sub_resource type="Resource" id="Set_messi"]
+script = ExtResource("4")
+lines = PackedStringArray("I saw MESSI at the docks today!", "...It was a seagull in a little shirt.", "You\'re cuter than Messi though. Don\'t tell Messi.")
+order_line = "A beer! To celebrate Messi!"
+
+[resource]
+script = ExtResource("1")
+display_name = "Lizard"
+texture = ExtResource("2")
+mask = ExtResource("3")
+eyes_mask = ExtResource("5")
+mouth = Vector2(80, 112)
+lines = PackedStringArray("Ahoy! You\'re not the big guy.", "You\'re alot prettier than that thing!", "Don\'t tell him I was here~", "...So? Are you pouring one or what?")
+extra_sets = Array[ExtResource("4")]([SubResource("Set_crab"), SubResource("Set_boot"), SubResource("Set_shells"), SubResource("Set_messi")])
+order_line = "One beer! Big one! Biggest one!"
+happy_lines = PackedStringArray("OHHH. That\'s the stuff. You\'re hired. By me.", "Beautiful. I\'m crying. It\'s the beer.")
+meh_lines = PackedStringArray("Bit sad, but I\'ll drink anything.")
+angry_lines = PackedStringArray("Did you pour it with your feet?")
+tip_good = 4
+voice_pitch = 1.25
+jiggle_stiffness = 110.0
+jiggle_damping = 4.5
+jiggle_inertia = 1.2
+jiggle_max = 8.0
+face_happy = ExtResource("6")
+face_kiss = ExtResource("7")
+face_wink = ExtResource("9")
+blush = ExtResource("8")
+nervous = ExtResource("10")

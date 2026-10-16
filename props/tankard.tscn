@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://shaders/toon_prop.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/models/tankard.glb" id="2"]
+[ext_resource type="Script" path="res://props/container_liquid.gd" id="3"]
+
+[node name="Tankard" type="Node3D"]
+script = ExtResource("1")
+outline_thickness_px = 3.0
+glass = true
+
+[node name="Model" parent="." instance=ExtResource("2")]
+
+[node name="Liquid" type="Node3D" parent="."]
+script = ExtResource("3")
+inner_radius_ratio = 1.05
