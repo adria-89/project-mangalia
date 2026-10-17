@@ -1,0 +1,68 @@
+[gd_resource type="Resource" script_class="CustomerData" format=3]
+
+[ext_resource type="Script" uid="uid://dqax1q7e38by4" path="res://customer/customer_data.gd" id="1"]
+[ext_resource type="Resource" path="res://props/recipes/cola.tres" id="r_cola"]
+[ext_resource type="Resource" path="res://props/recipes/rum.tres" id="r_rum"]
+[ext_resource type="Resource" path="res://props/recipes/cuba_libre.tres" id="r_cuba_libre"]
+[ext_resource type="Script" path="res://props/recipe.gd" id="r0"]
+[ext_resource type="Texture2D" uid="uid://ditdumua20hbv" path="res://assets/chars/foid_placeholder4.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://dcata3exfx3x4" path="res://assets/chars/foid_placeholder4_mask.png" id="3"]
+[ext_resource type="Script" uid="uid://dbc5py7jp16ic" path="res://customer/dialogue_set.gd" id="4"]
+[ext_resource type="Texture2D" uid="uid://bjwes3f4vuw1g" path="res://assets/chars/foid_placeholder4_mask_eyes.png" id="5"]
+
+[sub_resource type="Resource" id="Set_returned"]
+script = ExtResource("4")
+lines = PackedStringArray("M-mortal! I have RETURNED!", "...Was that too loud? That was too loud. Sorry.")
+order_line = "The usual, please. The d-dark one. Cola."
+
+[sub_resource type="Resource" id="Set_lighthouse"]
+script = ExtResource("4")
+lines = PackedStringArray("I tried to haunt the lighthouse last night.", "The keeper made me tea.", "...It was very nice tea.")
+order_line = "Cola, please. Fizzy. Like my... um. My soul."
+
+[sub_resource type="Resource" id="Set_holy_water"]
+script = ExtResource("4")
+lines = PackedStringArray("D-do you know why I can't drink rum on its own?", "It burns. Like holy water.", "Hidden in cola it's fine. Cola protects me.")
+order_line = "Just cola tonight. N-no rum. Could you check? Twice?"
+
+[sub_resource type="Resource" id="Set_striggy"]
+script = ExtResource("4")
+lines = PackedStringArray("The other girls call me Striggy now.", "I'm supposed to be t-terrifying...", "...I don't hate it.")
+order_line = "A cola, please, bartender. Er. M-mortal."
+
+[sub_resource type="Resource" id="Set_seagull"]
+script = ExtResource("4")
+lines = PackedStringArray("I hissed at a seagull today.", "It hissed back.", "We're f-friends now. I think?")
+order_line = "One cola, please. For me. N-not the seagull."
+
+[resource]
+script = ExtResource("1")
+display_name = "Strigoi"
+texture = ExtResource("2")
+mask = ExtResource("3")
+eyes_mask = ExtResource("5")
+mouth = Vector2(99, 104)
+lines = PackedStringArray("G-good evening, mortal...", "I am Strigoi. Feared across all of Dobrogea. Um.", "Y-you can call me Striggy. If you want! Only if you want.", "Sorry. I've never been to a bar before.")
+extra_sets = Array[ExtResource("4")]([SubResource("Set_returned"), SubResource("Set_lighthouse"), SubResource("Set_holy_water"), SubResource("Set_striggy"), SubResource("Set_seagull")])
+order_line = "One c-cola, please. The closest thing to blood you've got."
+happy_lines = PackedStringArray("Mmh! D-delicious... like the blood of my enemies!", "Th-thank you! I mean... your dark mistress is pleased.")
+meh_lines = PackedStringArray("It's... fine! It's fine. Really. Thank you.")
+angry_lines = PackedStringArray("I will curse you. A small curse. A t-tiny one.")
+empty_line = "Um... I think you forgot the... the d-drink part?"
+voice_pitch = 1.1
+bust = 0
+jiggle_stiffness = 230.0
+jiggle_damping = 9.0
+jiggle_inertia = 0.6
+jiggle_max = 3.0
+favorite = ExtResource("r_cola")
+sometimes = Array[ExtResource("r0")]([ExtResource("r_cuba_libre")])
+hated = ExtResource("r_rum")
+hated_line = "R-RUM?! It smells like a church! Take it away!"
+order_lines = {"Cuba Libre": "A C-Cuba Libre, please! I'm feeling... brave tonight."}
+other_happy_lines = PackedStringArray("Ooh, a really g-good {drink}! Thank you!")
+other_meh_lines = PackedStringArray("It's a... nice {drink}. Thank you!")
+other_angry_lines = PackedStringArray("This {drink} is... um. Cursed. Sorry.")
+wrong_drink_line = "Oh, um... this isn't what I ordered. B-but thank you!"
+muddy_line = "I think the l-layers got lost? It's okay!"
+off_mix_line = "It tastes a little... strange? Sorry!"

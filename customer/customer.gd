@@ -17,13 +17,26 @@ signal left
 signal kiss_landed
 
 const TICK_SOUND: AudioStream = preload("res://audio/dialogue_tick.wav")
-const BOING_SOUND: AudioStream = preload("res://audio/boing.wav")
+## Per CustomerData.Bust (small, medium, large): the sound her chest makes,
+## and its pitch.
+const BOING_SOUNDS: Array[AudioStream] = [
+	preload("res://audio/boing_small.wav"),
+	preload("res://audio/boing.wav"),
+	preload("res://audio/boing_large.wav"),
+]
+const BOING_PITCHES: Array[float] = [1.0, 1.0, 1.0]
 const KISS_SOUND: AudioStream = preload("res://audio/kiss_love.wav")
 ## The eyes shutting and opening again in the dark (see blink()).
 const BLINK_SOUNDS: Array[AudioStream] = [
 	preload("res://audio/blink1.wav"),
 	preload("res://audio/blink2.wav"),
 ]
+const HICCUP_SOUNDS: Array[AudioStream] = [
+	preload("res://audio/hiccup1.wav"),
+	preload("res://audio/hiccup2.wav"),
+	preload("res://audio/hiccup3.wav"),
+]
+const HiccupBubble := preload("res://customer/hiccup_bubble.gd")
 
 @export var data: CustomerData
 
@@ -60,12 +73,35 @@ const BLINK_SOUNDS: Array[AudioStream] = [
 @export var squish_per_pixel: float = 0.035
 @export var max_squish: float = 0.35
 
+@export_group("Drunk")
+## Beers she's had tonight (set by main). From hiccup_from on she hiccups,
+## more often the more she's had.
+@export var drunk: float = 0.0
+@export var hiccup_from: float = 1.0
+## Seconds between hiccups right at hiccup_from; divided by how drunk she is.
+@export var hiccup_interval: Vector2 = Vector2(3.0, 7.0)
+@export var min_hiccup_interval: float = 1.5
+@export var bubbles_per_hiccup: Vector2i = Vector2i(2, 4)
+## Slow wobble while drunk (sprite pixels): this much at hiccup_from, more per
+## extra beer, up to max_drunk_sway. Eases in and out.
+@export var drunk_sway: float = 1.5
+@export var drunk_sway_per_beer: float = 0.75
+@export var max_drunk_sway: float = 3.0
+@export_group("")
+
 @onready var _body: Sprite2D = $Body
 @onready var _front: Sprite2D = $Body/Front
 @onready var _voice: AudioStreamPlayer = $Voice
 var _boing: AudioStreamPlayer
 var _kiss: AudioStreamPlayer
 var _blink_sound: AudioStreamPlayer
+var _hiccup_sound: AudioStreamPlayer
+var _hiccup_timer := 0.0
+var _drinking := false
+var _bubbles: Array[Node2D] = []
+var _lights_out := 0.0
+var _sway := 0.0
+var _sway_time := 0.0
 
 enum State { WALK_IN, SIT, SEATED, STAND, WALK_OUT }
 ## Which sprite variant is shown (see CustomerData > Faces). The blush is
@@ -117,7 +153,7 @@ func _ready() -> void:
 	_front.visible = false
 	_voice.stream = TICK_SOUND
 	_boing = AudioStreamPlayer.new()
-	_boing.stream = BOING_SOUND
+	_boing.stream = BOING_SOUNDS[data.bust]
 	add_child(_boing)
 	_blink_sound = AudioStreamPlayer.new()
 	_blink_sound.process_mode = Node.PROCESS_MODE_ALWAYS # she blinks while the game is paused
@@ -126,6 +162,9 @@ func _ready() -> void:
 	_kiss = AudioStreamPlayer.new()
 	_kiss.stream = KISS_SOUND
 	add_child(_kiss)
+	_hiccup_sound = AudioStreamPlayer.new()
+	add_child(_hiccup_sound)
+	_reset_hiccup_timer()
 	_chest_anchor = Vector2(chest.x - data.texture.get_width() / 2.0, chest.y - height)
 	# Pivot is the sprite's bottom edge; place it so the chest bottom sits on the counter.
 	_seated_y = rest_line - _chest_anchor.y * display_scale
@@ -158,6 +197,7 @@ func _physics_process(delta: float) -> void:
 		State.SEATED:
 			_squash += sin(_time * 2.2) * 0.0006 # breathing
 			_body.rotation = -Sea.roll * sea_lean # keeps upright as the ship rolls under her
+			_update_hiccups(delta)
 		State.STAND:
 			_update_stand()
 		State.WALK_OUT:
@@ -165,6 +205,7 @@ func _physics_process(delta: float) -> void:
 	_update_hop(delta)
 	_update_squash(delta)
 	_update_ripple(delta)
+	_update_drunk_sway(delta)
 	_apply_body_transform()
 	_update_jiggle(delta)
 
@@ -196,7 +237,7 @@ func _update_sit() -> void:
 		_squash_velocity -= 5.0
 		_jiggle_velocity.y += 120.0 # plop onto the counter
 		# Boing, a bit deeper for lower-voiced characters.
-		_boing.pitch_scale = lerpf(1.0, data.voice_pitch, 0.5) * randf_range(0.95, 1.05)
+		_boing.pitch_scale = BOING_PITCHES[data.bust] * lerpf(1.0, data.voice_pitch, 0.5) * randf_range(0.95, 1.05)
 		_boing.play()
 		slammed.emit(1.0)
 		_enter(State.SEATED)
@@ -234,6 +275,18 @@ func _apply_body_transform() -> void:
 	_body.scale = Vector2(display_scale / stretch, display_scale * stretch)
 	_body.position = Vector2(0, _hop + _step_hop)
 
+## Drunk: a slow, gentle wave keeps running through her (see jiggle.gdshader).
+func _update_drunk_sway(delta: float) -> void:
+	var target := 0.0
+	if drunk >= hiccup_from:
+		target = minf(drunk_sway + (drunk - hiccup_from) * drunk_sway_per_beer, max_drunk_sway)
+	if _sway <= 0.0 and target <= 0.0:
+		return
+	_sway = move_toward(_sway, target, delta * 0.5)
+	_sway_time += delta
+	_set_shader("drunk_sway", _sway)
+	_set_shader("drunk_time", _sway_time)
+
 ## The nervous ripple calms down: strong at first, then quickly still.
 func _update_ripple(delta: float) -> void:
 	if _ripple_left <= 0.0:
@@ -259,7 +312,7 @@ func _update_jiggle(delta: float) -> void:
 	_jiggle += _jiggle_velocity * delta
 	_jiggle = _jiggle.limit_length(data.jiggle_max)
 
-	var offset := _jiggle / display_scale
+	var offset := _jiggle / display_scale * Settings.physics_scale()
 	var squish := 0.0
 	if _state == State.SEATED and _hop > -1.0:
 		# Resting on the counter: anything pushing down becomes squish.
@@ -329,6 +382,7 @@ func gulp(strength: float = 1.0) -> void:
 
 ## The tankard reached her lips: she puckers up until finish_drinking().
 func start_drinking() -> void:
+	_drinking = true
 	set_face(Face.KISS)
 
 ## A quick wink (SHUKAR!, dropping her tip).
@@ -337,6 +391,7 @@ func wink() -> void:
 
 ## Done drinking: back to her normal face, and flushed if she liked it.
 func finish_drinking(liked: bool) -> void:
+	_drinking = false
 	set_face(Face.DEFAULT)
 	if liked:
 		set_blush(true)
@@ -351,7 +406,7 @@ func ahh() -> void:
 func slam_bounce() -> void:
 	_squash_velocity -= 5.0
 	_jiggle_velocity += Vector2(randf_range(-50.0, 50.0), 150.0)
-	_boing.pitch_scale = lerpf(1.0, data.voice_pitch, 0.5) * randf_range(0.8, 0.9)
+	_boing.pitch_scale = BOING_PITCHES[data.bust] * lerpf(1.0, data.voice_pitch, 0.5) * randf_range(0.8, 0.9)
 	_boing.play()
 	slammed.emit(0.8)
 	await get_tree().create_timer(0.12).timeout
@@ -448,6 +503,10 @@ func set_lights_out(amount: float) -> void:
 		set_face(Face.DEFAULT)
 	for sprite: Sprite2D in [_body, _front]:
 		(sprite.material as ShaderMaterial).set_shader_parameter("lights_out", amount)
+	_lights_out = amount
+	for bubble in _bubbles:
+		if is_instance_valid(bubble):
+			bubble.modulate = Color(1.0 - amount, 1.0 - amount, 1.0 - amount, bubble.modulate.a)
 
 ## A quick blink of the glowing eyes in the dark: a sound as they shut, the
 ## other as they open.
@@ -488,3 +547,47 @@ func stand_up() -> void:
 
 func hit_test(global_point: Vector2) -> bool:
 	return _body.is_pixel_opaque(_body.to_local(global_point))
+
+## Tipsy: now and then a hiccup, sooner the more she's had. Not while the
+## tankard is at her lips, and not in the dark.
+func _update_hiccups(delta: float) -> void:
+	if drunk < hiccup_from or _drinking or _lights_out > 0.0:
+		return
+	_hiccup_timer -= delta
+	if _hiccup_timer <= 0.0:
+		hiccup()
+		_reset_hiccup_timer()
+
+func _reset_hiccup_timer() -> void:
+	var interval := randf_range(hiccup_interval.x, hiccup_interval.y) / maxf(drunk, 1.0)
+	_hiccup_timer = maxf(interval, min_hiccup_interval)
+
+## A hiccup: a jolt up, a "hic" in her pitch, and a few bubbles float out of
+## her mouth and pop.
+func hiccup() -> void:
+	if _state != State.SEATED:
+		return
+	_hop_velocity = -110.0
+	_hop = -0.01
+	_squash_velocity += 4.0
+	_jiggle_velocity += Vector2(randf_range(-30.0, 30.0), -90.0)
+	_hiccup_sound.stream = HICCUP_SOUNDS.pick_random()
+	_hiccup_sound.pitch_scale = lerpf(1.0, data.voice_pitch, 0.5) * randf_range(0.95, 1.05)
+	_hiccup_sound.play()
+	# Forget the ones that already popped.
+	for i in range(_bubbles.size() - 1, -1, -1):
+		if not is_instance_valid(_bubbles[i]):
+			_bubbles.remove_at(i)
+	var mouth := mouth_screen_position()
+	for i in randi_range(bubbles_per_hiccup.x, bubbles_per_hiccup.y):
+		var bubble: Sprite2D = HiccupBubble.new()
+		bubble.size = randf_range(0.12, 0.28)
+		bubble.rise_speed = randf_range(16.0, 30.0)
+		bubble.life = randf_range(1.0, 2.2)
+		# Next to her, over the counter, so they pop in front of everything.
+		get_parent().add_child(bubble)
+		bubble.global_position = mouth + Vector2(randf_range(-4.0, 4.0), randf_range(-3.0, 3.0))
+		_bubbles.append(bubble)
+		await get_tree().create_timer(randf_range(0.04, 0.12)).timeout
+		if not is_inside_tree():
+			return

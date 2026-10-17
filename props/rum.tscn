@@ -1,0 +1,33 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://props/bottle.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/models/rum.glb" id="2"]
+[ext_resource type="Resource" path="res://props/drinks/rum.tres" id="3"]
+[ext_resource type="Script" path="res://props/container_liquid.gd" id="4"]
+
+[node name="Rum" type="Node3D"]
+script = ExtResource("1")
+drink = ExtResource("3")
+mouth = Vector3(0.065, 0.61, 0)
+grip_height = 0.2
+pour_rate = 0.18
+stream_width = 3.0
+glug_size = 0.4
+glug_spacing = 60.0
+pitch = 1.3
+glasses = 1.5
+glass_meshes = PackedStringArray("Glass", "GlassNeck")
+outline_thickness_px = 3.0
+
+[node name="Model" parent="." instance=ExtResource("2")]
+
+[node name="Liquid" type="Node3D" parent="."]
+script = ExtResource("4")
+default_drink = ExtResource("3")
+body_mesh = "Glass"
+measure_at = 0.87
+full_at = 0.86
+spills = false
+foam_per_pour = 0.0
+min_foam = 0.0
+

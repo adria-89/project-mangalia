@@ -1,0 +1,255 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://menu/scroll_menu.gd" id="1"]
+[ext_resource type="Shader" path="res://shaders/sepia_pause.gdshader" id="2"]
+[ext_resource type="Texture2D" path="res://assets/ui/ui_menu.png" id="3"]
+[ext_resource type="PackedScene" path="res://menu/scroll_button.tscn" id="4"]
+[ext_resource type="FontFile" path="res://assets/ui/alagard.ttf" id="5"]
+[ext_resource type="Script" path="res://menu/ink_slider.gd" id="6"]
+[ext_resource type="Script" path="res://menu/ink_choice.gd" id="7"]
+[ext_resource type="Texture2D" path="res://assets/ui/ui_frame.png" id="8"]
+
+[sub_resource type="ShaderMaterial" id="SepiaMat"]
+shader = ExtResource("2")
+shader_parameter/reveal = 0.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font = ExtResource("5")
+font_size = 32
+font_color = Color(0.25, 0.14, 0.07, 1)
+outline_size = 8
+outline_color = Color(0.85, 0.71, 0.65, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_row"]
+font = ExtResource("5")
+font_color = Color(0.25, 0.14, 0.07, 1)
+outline_size = 5
+outline_color = Color(0.85, 0.71, 0.65, 1)
+
+[node name="ScrollMenu" type="CanvasLayer"]
+process_mode = 3
+layer = 90
+visible = false
+script = ExtResource("1")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Picture" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 540.0
+offset_bottom = 400.0
+pivot_offset = Vector2(270, 200)
+mouse_filter = 2
+
+[node name="Snapshot" type="TextureRect" parent="Picture"]
+material = SubResource("SepiaMat")
+layout_mode = 0
+offset_right = 540.0
+offset_bottom = 400.0
+mouse_filter = 2
+
+[node name="Frame" type="TextureRect" parent="Picture"]
+layout_mode = 0
+offset_right = 540.0
+offset_bottom = 400.0
+pivot_offset = Vector2(270, 200)
+mouse_filter = 2
+texture = ExtResource("8")
+
+[node name="Scroll" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 540.0
+offset_bottom = 400.0
+pivot_offset = Vector2(270, 200)
+mouse_filter = 2
+
+[node name="Paper" type="TextureRect" parent="Scroll"]
+visible = false
+layout_mode = 0
+offset_right = 540.0
+offset_bottom = 400.0
+mouse_filter = 2
+texture = ExtResource("3")
+
+[node name="Title" type="Label" parent="Scroll"]
+layout_mode = 0
+offset_left = 80.0
+offset_top = 46.0
+offset_right = 460.0
+offset_bottom = 86.0
+text = "Paused"
+label_settings = SubResource("LabelSettings_title")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PausePage" type="VBoxContainer" parent="Scroll"]
+layout_mode = 0
+offset_left = 205.0
+offset_top = 88.0
+offset_right = 335.0
+offset_bottom = 336.0
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="Resume" parent="Scroll/PausePage" instance=ExtResource("4")]
+layout_mode = 2
+text = "Resume"
+
+[node name="Options" parent="Scroll/PausePage" instance=ExtResource("4")]
+layout_mode = 2
+text = "Options"
+
+[node name="MainMenu" parent="Scroll/PausePage" instance=ExtResource("4")]
+layout_mode = 2
+text = "Main Menu"
+
+[node name="Quit" parent="Scroll/PausePage" instance=ExtResource("4")]
+layout_mode = 2
+text = "Quit"
+
+[node name="OptionsPage" type="VBoxContainer" parent="Scroll"]
+visible = false
+layout_mode = 0
+offset_left = 105.0
+offset_top = 88.0
+offset_right = 435.0
+offset_bottom = 336.0
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="Master" type="HBoxContainer" parent="Scroll/OptionsPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/OptionsPage/Master"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Master volume"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Slider" type="Range" parent="Scroll/OptionsPage/Master"]
+custom_minimum_size = Vector2(150, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 1.0
+script = ExtResource("6")
+
+[node name="Music" type="HBoxContainer" parent="Scroll/OptionsPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/OptionsPage/Music"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Music"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Slider" type="Range" parent="Scroll/OptionsPage/Music"]
+custom_minimum_size = Vector2(150, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 1.0
+script = ExtResource("6")
+
+[node name="SFX" type="HBoxContainer" parent="Scroll/OptionsPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/OptionsPage/SFX"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Sound effects"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Slider" type="Range" parent="Scroll/OptionsPage/SFX"]
+custom_minimum_size = Vector2(150, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 1.0
+script = ExtResource("6")
+
+[node name="Physics" type="HBoxContainer" parent="Scroll/OptionsPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/OptionsPage/Physics"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Physics"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/OptionsPage/Physics"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("Off", "Normal", "Max")
+
+[node name="TextSpeed" type="HBoxContainer" parent="Scroll/OptionsPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/OptionsPage/TextSpeed"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Text speed"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/OptionsPage/TextSpeed"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("Slow", "Normal", "Fast")
+
+[node name="Fullscreen" type="HBoxContainer" parent="Scroll/OptionsPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/OptionsPage/Fullscreen"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Fullscreen"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/OptionsPage/Fullscreen"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("Off", "On")
+
+[node name="WindowScale" type="HBoxContainer" parent="Scroll/OptionsPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/OptionsPage/WindowScale"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Window size"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/OptionsPage/WindowScale"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("1x", "2x")
+
+[node name="Back" parent="Scroll/OptionsPage" instance=ExtResource("4")]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Back"

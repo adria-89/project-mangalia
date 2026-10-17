@@ -19,6 +19,12 @@ const OUTLINE_NODE_NAME := "_Outline"
 	set(value):
 		glass = value
 		_apply()
+## Or only these meshes (by node name) are glass, e.g. a bottle's body but
+## not its label and cap.
+@export var glass_meshes: PackedStringArray = []:
+	set(value):
+		glass_meshes = value
+		_apply()
 
 ## Off = show the texture exactly as painted (no lantern light/shadow).
 @export var use_lighting: bool = false:
@@ -40,14 +46,19 @@ func _ready() -> void:
 func _apply() -> void:
 	if not is_inside_tree():
 		return
+	var outlines := [_outline_material(false), _outline_material(true)]
+	for mesh_instance in _find_meshes(self):
+		var is_glass := glass or glass_meshes.has(String(mesh_instance.name))
+		_setup_mesh(mesh_instance, outlines[int(is_glass)], is_glass)
+
+func _outline_material(for_glass: bool) -> ShaderMaterial:
 	var outline_mat := ShaderMaterial.new()
-	outline_mat.shader = OUTLINE_GLASS_SHADER if glass else OUTLINE_SHADER
+	outline_mat.shader = OUTLINE_GLASS_SHADER if for_glass else OUTLINE_SHADER
 	# Glass draws back faces (0), then front faces (1), then the outline (2).
-	outline_mat.render_priority = 2 if glass else 0
+	outline_mat.render_priority = 2 if for_glass else 0
 	outline_mat.set_shader_parameter("outline_color", outline_color)
 	outline_mat.set_shader_parameter("thickness_px", outline_thickness_px)
-	for mesh_instance in _find_meshes(self):
-		_setup_mesh(mesh_instance, outline_mat)
+	return outline_mat
 
 func _find_meshes(node: Node) -> Array[MeshInstance3D]:
 	var found: Array[MeshInstance3D] = []
@@ -60,13 +71,13 @@ func _find_meshes(node: Node) -> Array[MeshInstance3D]:
 		found.append_array(_find_meshes(child))
 	return found
 
-func _setup_mesh(mesh_instance: MeshInstance3D, outline_mat: ShaderMaterial) -> void:
+func _setup_mesh(mesh_instance: MeshInstance3D, outline_mat: ShaderMaterial, is_glass: bool) -> void:
 	var mesh := mesh_instance.mesh
 	if mesh == null:
 		return
 	for surface in mesh.get_surface_count():
 		var source := mesh.surface_get_material(surface)
-		var mat := _glass_material_for(source) if glass else _toon_material_for(source)
+		var mat := _glass_material_for(source) if is_glass else _toon_material_for(source)
 		mesh_instance.set_surface_override_material(surface, mat)
 
 	var outline := mesh_instance.get_node_or_null(OUTLINE_NODE_NAME) as MeshInstance3D

@@ -34,6 +34,34 @@ extends Resource
 @export var tip_good: int = 3
 @export var tip_meh: int = 1
 
+@export_group("Tastes")
+## What she orders most of the time. The order lines above (and in her
+## dialogue sets) are for this one. Empty = the bar's default (beer).
+@export var favorite: Recipe
+## Now and then (sometimes_chance) she orders one of these instead.
+@export var sometimes: Array[Recipe] = []
+@export_range(0.0, 1.0) var sometimes_chance: float = 0.3
+## Once she's this drunk (beers' worth tonight), she mostly goes for these.
+@export var drunk_orders: Array[Recipe] = []
+@export var drunk_from: float = 2.0
+## Never orders it; served it anyway, she's furious (hated_line).
+@export var hated: Recipe
+@export var hated_line: String = "I would NEVER drink this."
+## What she says ordering something other than her favorite, by recipe name
+## (e.g. "Motorina": "Fuel me up!"). Missing ones use the recipe's own line.
+@export var order_lines: Dictionary = {}
+## Reactions to anything but her favorite (the happy / meh / angry lines
+## above are for the favorite). {drink} becomes what she ordered.
+@export var other_happy_lines: PackedStringArray = ["Now THAT is a {drink}."]
+@export var other_meh_lines: PackedStringArray = ["...It'll do, for a {drink}."]
+@export var other_angry_lines: PackedStringArray = ["You call this a {drink}?"]
+## Served something that isn't what she ordered at all.
+@export var wrong_drink_line: String = "That's not what I ordered."
+## Ordered it layered, got it mixed (or in the wrong order).
+@export var muddy_line: String = "It was supposed to have layers..."
+## The mix is off (too much of one thing).
+@export var off_mix_line: String = "Something's off with the mix."
+
 @export_group("Voice")
 ## Base pitch of the dialogue tick for this character.
 @export var voice_pitch: float = 1.0
@@ -41,6 +69,11 @@ extends Resource
 @export var text_speed: float = 1.0
 
 @export_group("Jiggle")
+## Small / medium / large: picks the sound her chest makes when she plops
+## down or slams the tankard (customer.gd > BOING_SOUNDS). The jiggle feel
+## itself is the numbers below, tuned per character to match.
+enum Bust { SMALL, MEDIUM, LARGE }
+@export var bust: Bust = Bust.MEDIUM
 @export var jiggle_stiffness: float = 140.0
 @export var jiggle_damping: float = 6.0
 @export var jiggle_inertia: float = 1.0

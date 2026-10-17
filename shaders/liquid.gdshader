@@ -8,15 +8,30 @@ render_mode unshaded, cull_disabled;
 // read as the top seen from above. Purely visual: the foam is not drink.
 //
 // Toon look: noise textures are compared against thresholds into 2-3 flat
-// tones (bubble cells on the foam, rising fizz specks in the beer).
+// tones (bubble cells on the foam, rising fizz specks in fizzy drinks).
+//
+// The drink is a stack of layers (container_liquid.gd): flat bands parallel
+// to the surface, so they tilt and slosh with it, with a darker line where
+// two meet.
 
-uniform vec4 liquid_color : source_color = vec4(0.85, 0.55, 0.12, 1.0);
+// Must match MAX_LAYERS in container_liquid.gd.
+uniform int layer_count = 0;
+// Top of each layer, bottom first, as a fraction of full.
+uniform float layer_tops[8];
+uniform vec4 layer_colors[8] : source_color;
+// Fizz specks color; alpha = how fizzy the layer is (0 = still).
+uniform vec4 layer_fizz[8] : source_color;
+// Total drink (fraction of full): where the surface is.
+uniform float fill_level = 0.0;
+// How much the borders between layers wave (fraction of full), and how
+// thick the line drawn on them is.
+uniform float border_wave = 0.006;
+uniform float border_line = 0.008;
 uniform vec4 surface_color : source_color = vec4(0.98, 0.93, 0.78, 1.0);
 uniform vec4 foam_color : source_color = vec4(1.0, 0.97, 0.88, 1.0);
 // Foam tones: inside the bubbles, and the lines between them.
 uniform vec4 foam_shade : source_color = vec4(0.93, 0.85, 0.68, 1.0);
 uniform vec4 foam_edge : source_color = vec4(0.8, 0.65, 0.42, 1.0);
-uniform vec4 fizz_color : source_color = vec4(1.0, 0.82, 0.45, 1.0);
 // A point on the surface and its normal, both in world space.
 uniform vec3 surface_point = vec3(0.0);
 uniform vec3 surface_normal = vec3(0.0, 1.0, 0.0);
@@ -61,7 +76,8 @@ uniform float fizz_size = 0.12;
 uniform float fizz_speed = 0.12;
 uniform float fizz_amount = 0.07;
 uniform float fizz_top_boost = 2.5;
-// Lower part of the beer (fraction of the height) is drawn a shade darker.
+// Lower part of a single-drink fill (fraction of the height) is drawn a
+// shade darker. Not with layers: it would read as one more.
 uniform float dark_below = 0.35;
 
 varying vec3 world_pos;
@@ -110,6 +126,7 @@ void fragment() {
 	if (d > foam_top) {
 		discard;
 	}
+	DEPTH = FRAGCOORD.z; // the top's back faces set their own (below)
 	bool in_foam = d > 0.0;
 	if (!in_foam && h > axis_height) {
 		discard; // only the head may rise over the rim
@@ -121,27 +138,60 @@ void fragment() {
 			float top = clamp(d / max(foam_top, 0.0001), 0.0, 1.0);
 			ALBEDO = foam_tone(vec2(angle * tiles, h / bubble_size), top);
 		} else {
-			vec3 color = h < axis_height * dark_below ? liquid_color.rgb * 0.8 : liquid_color.rgb;
+			// Which layer: how far up the drink this point is (fraction of
+			// full), with the borders waving a little so they read as liquid.
+			float level = fill_level + d / axis_height;
+			level += sin(angle * TAU * 3.0 + TIME * 2.0) * border_wave;
+			int layer = max(layer_count - 1, 0);
+			for (int i = 0; i < layer_count - 1; i++) {
+				if (level < layer_tops[i]) {
+					layer = i;
+					break;
+				}
+			}
+			vec3 color = layer_colors[layer].rgb;
+			if (layer_count == 1 && h < axis_height * dark_below) {
+				color *= 0.8;
+			}
+			// The line where this layer meets the one above or below.
+			bool on_border = (layer < layer_count - 1 && layer_tops[layer] - level < border_line)
+				|| (layer > 0 && level - layer_tops[layer - 1] < border_line);
+			if (on_border) {
+				color *= 0.7;
+			}
+			vec4 fizz = layer_fizz[layer];
 			float tiles = max(round(TAU * radius / fizz_size), 1.0);
 			// Rising, wobbling side to side, and gathering just under the head.
 			vec2 fizz_uv = vec2(angle * tiles, (h - TIME * fizz_speed) / fizz_size);
 			fizz_uv.x += sin(fizz_uv.y * 2.0 + TIME * 3.0) * 0.08;
 			float near_top = smoothstep(-axis_height * 0.25, 0.0, d);
 			float f = texture(cells_noise, fizz_uv).r;
-			ALBEDO = f < fizz_amount * (1.0 + fizz_top_boost * near_top) ? fizz_color.rgb : color;
+			ALBEDO = f < fizz_amount * fizz.a * (1.0 + fizz_top_boost * near_top) ? fizz.rgb : color;
 		}
 	} else {
+		// The back faces stand in for the flat top (surface or head) seen
+		// through the cut: find where the view ray meets it, texture it there
+		// and give it that depth, not the far wall's, so the container's back
+		// wall (its metal bands...) can't show through the drink.
+		vec3 dir = normalize(world_pos - CAMERA_POSITION_WORLD);
+		vec3 top_point = surface_point + surface_normal * foam_height;
+		float denom = dot(dir, surface_normal);
+		vec3 hit = world_pos;
+		if (abs(denom) > 0.0001) {
+			float along = dot(top_point - CAMERA_POSITION_WORLD, surface_normal) / denom;
+			hit = CAMERA_POSITION_WORLD + dir * clamp(along, 0.0, length(world_pos - CAMERA_POSITION_WORLD));
+		}
+		// Only where the ray meets the top inside the container; elsewhere the
+		// drink's side is in front anyway.
+		vec3 hit_rel = hit - axis_point;
+		vec3 hit_around = hit_rel - axis_up * dot(hit_rel, axis_up);
+		if (length(hit_around) <= radius) {
+			vec4 clip = PROJECTION_MATRIX * VIEW_MATRIX * vec4(hit, 1.0);
+			DEPTH = clip.z / clip.w;
+		}
 		if (foam_height < 0.0005) {
 			ALBEDO = surface_color.rgb;
 		} else {
-			// Texture the top where the view ray meets the head's (flat) top.
-			vec3 dir = normalize(world_pos - CAMERA_POSITION_WORLD);
-			vec3 top_point = surface_point + surface_normal * foam_height;
-			float denom = dot(dir, surface_normal);
-			vec3 hit = world_pos;
-			if (abs(denom) > 0.0001) {
-				hit = CAMERA_POSITION_WORLD + dir * dot(top_point - CAMERA_POSITION_WORLD, surface_normal) / denom;
-			}
 			vec3 top_rel = hit - axis_point;
 			ALBEDO = foam_tone(vec2(dot(top_rel, tangent), dot(top_rel, bitangent)) / bubble_size, 1.0);
 		}

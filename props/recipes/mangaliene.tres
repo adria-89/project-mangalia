@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Recipe" format=3]
+
+[ext_resource type="Script" path="res://props/recipe.gd" id="1"]
+[ext_resource type="Script" path="res://props/drink.gd" id="9"]
+[ext_resource type="Resource" path="res://props/drinks/cola.tres" id="2"]
+[ext_resource type="Resource" path="res://props/drinks/beer.tres" id="3"]
+[ext_resource type="Resource" path="res://props/drinks/rum.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+name = "Mangaliene"
+drinks = Array[ExtResource("9")]([ExtResource("2"), ExtResource("3"), ExtResource("4")])
+shares = PackedFloat32Array(0.4, 0.4, 0.2)
+layered = true
+fill = 1.0
+unlock_night = 3
+order_line = "A Mangaliene. Cola, beer, rum. In layers."

@@ -42,12 +42,21 @@ uniform float ripple_amount = 0.0;
 uniform float ripple_time = 0.0;
 uniform float ripple_waves = 6.0; // waves from top to bottom
 uniform float ripple_speed = 18.0;
+// Drunk sway: the same sideways row shift, but a long slow wave that never
+// stops. drunk_sway = size in sprite pixels (0 = sober), drunk_time drives it.
+uniform float drunk_sway = 0.0;
+uniform float drunk_time = 0.0;
+uniform float drunk_waves = 1.3;
+uniform float drunk_speed = 1.8;
 
 void fragment() {
 	float weight = texture(jiggle_mask, UV).r * texture(jiggle_mask, UV).a;
 	vec2 uv = UV;
 	if (ripple_amount > 0.0) {
 		uv.x += sin(UV.y * ripple_waves * TAU - ripple_time * ripple_speed) * ripple_amount * TEXTURE_PIXEL_SIZE.x;
+	}
+	if (drunk_sway > 0.0) {
+		uv.x += sin(UV.y * drunk_waves * TAU - drunk_time * drunk_speed) * drunk_sway * TEXTURE_PIXEL_SIZE.x;
 	}
 	// Squish: compress toward the contact line and bulge sideways.
 	float s = squish * weight;

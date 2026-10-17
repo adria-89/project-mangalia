@@ -1,0 +1,34 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://props/bottle.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/models/cola.glb" id="2"]
+[ext_resource type="Resource" path="res://props/drinks/cola.tres" id="3"]
+[ext_resource type="Script" path="res://props/container_liquid.gd" id="4"]
+
+[node name="Cola" type="Node3D"]
+script = ExtResource("1")
+drink = ExtResource("3")
+mouth = Vector3(0, 0.79, 0)
+grip_height = 0.35
+pour_from_deg = 45.0
+pour_rate = 0.3
+stream_width = 6.0
+glug_size = 2.6
+glug_spacing = 26.0
+pitch = 0.85
+glasses = 4.0
+glass_meshes = PackedStringArray("Glass", "GlassNeck")
+outline_thickness_px = 3.0
+
+[node name="Model" parent="." instance=ExtResource("2")]
+
+[node name="Liquid" type="Node3D" parent="."]
+script = ExtResource("4")
+default_drink = ExtResource("3")
+body_mesh = "Glass"
+measure_at = 0.81
+full_at = 0.98
+spills = false
+foam_per_pour = 0.0
+min_foam = 0.0
+

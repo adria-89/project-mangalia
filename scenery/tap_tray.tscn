@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b2fpu4ww8al23" path="res://scenery/tap_tray.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://cglx85nwck5pq" path="res://assets/bar/tap.png" id="2"]
+[ext_resource type="Script" path="res://scenery/pour_stream.gd" id="3"]
 
 [node name="TapTray" type="Node2D" unique_id=1880518384]
 script = ExtResource("1")
@@ -11,3 +12,6 @@ texture = ExtResource("2")
 centered = false
 region_enabled = true
 region_rect = Rect2(0, 0, 90, 98)
+
+[node name="PourStream" type="Node2D" parent="."]
+script = ExtResource("3")

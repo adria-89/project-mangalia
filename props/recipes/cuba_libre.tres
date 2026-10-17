@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Recipe" format=3]
+
+[ext_resource type="Script" path="res://props/recipe.gd" id="1"]
+[ext_resource type="Script" path="res://props/drink.gd" id="9"]
+[ext_resource type="Resource" path="res://props/drinks/rum.tres" id="2"]
+[ext_resource type="Resource" path="res://props/drinks/cola.tres" id="3"]
+
+[resource]
+script = ExtResource("1")
+name = "Cuba Libre"
+drinks = Array[ExtResource("9")]([ExtResource("2"), ExtResource("3")])
+shares = PackedFloat32Array(0.3, 0.7)
+layered = false
+fill = 1.0
+unlock_night = 1
+order_line = "A Cuba Libre."

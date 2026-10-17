@@ -1,18 +1,21 @@
 extends Node2D
 
-## The bar: customers come in one at a time, chat, and order a beer. Pour it
-## at the tap and set it down (or flick it) in front of her; she judges how
-## full it is and how much you spilled, reacts, drinks, tosses a tip on the
+## The bar: customers come in one at a time, chat, and order a drink (a
+## Recipe: beer, a Mangaliene...; what she orders depends on her tastes in
+## CustomerData, how drunk she is and what the bar has unlocked by tonight).
+## Pour it at the tap and the bottle crate and set it down (or flick it) in
+## front of her; she judges how full it is, how much you spilled, the mix and,
+## for layered drinks, the layers. She reacts, drinks, tosses a tip on the
 ## counter and leaves. Click the coins to collect them.
 ##
 ## Each character's lines live in its CustomerData resource
-## (customer/lizard.tres, cat.tres); expand them under Customers in the
-## Inspector of the Main node to edit.
+## (customer/lizard.tres, cat.tres, strigoi.tres); expand them under
+## Customers in the Inspector of the Main node to edit.
 ##
 ## Controls: drag the tankard, hover the left edge for the tap, click a
 ## customer to poke her, click elsewhere / Space to advance dialogue,
 ## 1 / 2 to call a specific customer, N to skip to the end of the day,
-## R to restart.
+## U to unlock every drink (debug), R to restart.
 
 const CUSTOMER_SCENE: PackedScene = preload("res://customer/customer.tscn")
 
@@ -41,10 +44,11 @@ const DRINK_STYLES := {
 @export var customers: Array[CustomerData] = [
 	preload("res://customer/lizard.tres"),
 	preload("res://customer/cat.tres"),
+	preload("res://customer/strigoi.tres"),
 ]
 ## Which of the customers above walk in on their own (the names must follow
-## the list order). The 1 / 2 keys can still call anyone. None ticked = all.
-@export_flags("Lizard", "Cat") var arriving: int = 1
+## the list order). The 1 / 2 / 3 keys can still call anyone. None ticked = all.
+@export_flags("Lizard", "Cat", "Strigoi") var arriving: int = 1
 @export var enter_x: float = -140.0
 ## Real seconds the clock takes to go from the start of the day to night.
 @export var day_seconds: float = 120.0
@@ -59,6 +63,8 @@ const DRINK_STYLES := {
 @export var fuel_cost_per_night: int = 2
 
 @export_group("Judging")
+## Ordered when a customer has no favorite (and on the first night).
+@export var default_recipe: Recipe = preload("res://props/recipes/beer.tres")
 ## Fill at or above this counts as a proper pour.
 @export var good_fill: float = 0.85
 @export var okay_fill: float = 0.5
@@ -66,12 +72,24 @@ const DRINK_STYLES := {
 @export var messy_spill: float = 0.25
 ## How far (3D units, sideways) from her the drink may land and still count as served.
 @export var serve_reach: float = 0.5
+## How far the mix may be off the recipe (0..1, see Recipe.difference)
+## before it costs a mood step, and before it's the wrong drink altogether.
+@export var close_mix: float = 0.15
+@export var wrong_mix: float = 0.5
+## A layered drink needs its layers this clean (0..1) and in the right order,
+## or it costs a mood step.
+@export var clean_layers: float = 0.75
+## Layers thinner than this (fraction of full) don't count for the order.
+@export var min_layer: float = 0.03
 
 @export_group("Kisses")
 ## A pour counts as perfect at or above this fill, spilling no more than this.
 ## Every perfect beer gets you a kiss on the screen.
 @export var perfect_fill: float = 0.9
 @export var perfect_spill: float = 0.1
+## ...and with the mix this close, and layers (if any) this clean.
+@export var perfect_mix: float = 0.1
+@export var perfect_layers: float = 0.9
 ## Bonus lei that fly out of the kiss.
 @export var kiss_bonus: int = 2
 @export_group("")
@@ -117,6 +135,12 @@ var _drink_done := true
 ## Per character: how many times she's visited, and which dialogue set she used last.
 var _visits := {}
 var _last_set := {}
+## Beers each regular has had tonight (keyed by CustomerData). Slept off overnight.
+var _drunk := {}
+## What the current customer ordered.
+var _order: Recipe
+## Debug (U): every drink can be ordered from the first night.
+var _unlock_all := false
 
 func _ready() -> void:
 	_bubble.line_started.connect(_on_line_started)
@@ -173,12 +197,21 @@ func _tally_text() -> String:
 			parts.append("%d %s" % [_tally[rating], RATING_STYLES[rating][0]])
 	return "  ".join(parts) if not parts.is_empty() else "No drinks served"
 
-## Closing time: everything freezes where it is and the lantern goes out at
-## once. All black except the sea through the porthole and the customer's eye
-## whites, which blink once. Leaves the game paused (for the night card).
+## Closing time: the lantern flickers and fades out (you can still play
+## meanwhile), then everything freezes where it is. All black except the sea
+## through the porthole and the customer's eye whites, which blink once. Leaves
+## the game paused (for the night card).
 func _lights_out() -> void:
+	var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	# Flicker: a few quick dips, then it dies.
+	var from := 1.0
+	for level: float in [0.35, 0.9, 0.2, 0.7]:
+		tween.tween_method(_set_lights, from, level, 0.06)
+		tween.tween_interval(0.08)
+		from = level
+	tween.tween_method(_set_lights, from, 0.0, 0.45).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	await tween.finished
 	get_tree().paused = true
-	_set_lights(0.0)
 	# These timers run while paused (process_always), so the blink still happens.
 	await get_tree().create_timer(0.9).timeout
 	if is_instance_valid(_customer):
@@ -187,7 +220,7 @@ func _lights_out() -> void:
 
 ## Room brightness, 1 = lit, 0 = lights out. The sky and sea aren't touched.
 func _set_lights(level: float) -> void:
-	for node: CanvasItem in [$Background, $Counter, $TapTray, $BarProps, $SpeechBubble, $MoneyHud, $ShiftClock]:
+	for node: CanvasItem in [$Background, $Counter, $TapTray, $BottleRail, $RumRope, $BarProps, $SpeechBubble, $MoneyHud, $ShiftClock]:
 		node.modulate = Color(level, level, level, node.modulate.a)
 	_kisses.set_brightness(level)
 	if is_instance_valid(_customer):
@@ -199,8 +232,11 @@ func _reset_bar() -> void:
 	_kisses.clear() # the waves washed them off
 	_tally.fill(0)
 	_broken = 0
+	_drunk.clear()
 	_coins.clear()
 	_props.reset_props()
+	$BottleRail.restock()
+	$RumRope.restock()
 	_spawn(_next_arriving(-1))
 
 func _spawn(index: int) -> void:
@@ -214,6 +250,7 @@ func _spawn(index: int) -> void:
 		_customer.queue_free()
 	var customer := CUSTOMER_SCENE.instantiate()
 	customer.data = customers[index]
+	customer.drunk = _drunk.get(customers[index], 0.0)
 	customer.position.x = enter_x
 	customer.seated.connect(_on_customer_seated.bind(customer))
 	customer.left.connect(_on_customer_left.bind(customer))
@@ -263,8 +300,41 @@ func _pick_dialogue(data: CustomerData) -> PackedStringArray:
 		lines = dialogue_set.lines.duplicate()
 		if not dialogue_set.order_line.is_empty():
 			order = dialogue_set.order_line
+	# Those order lines are for her favorite; anything else has its own.
+	_order = _pick_order(data)
+	if _order != _favorite(data):
+		order = data.order_lines.get(_order.name, _order.order_line)
 	lines.append(order)
 	return lines
+
+## What she orders this visit: once she's drunk enough, mostly one of her
+## drunk orders; otherwise now and then one she sometimes has, else her
+## favorite. Only drinks unlocked by tonight; never the one she hates.
+func _pick_order(data: CustomerData) -> Recipe:
+	var drunk: float = _drunk.get(data, 0.0)
+	var drunk_picks := _unlocked(data.drunk_orders, data)
+	if drunk >= data.drunk_from and not drunk_picks.is_empty() and randf() < 0.7:
+		return drunk_picks.pick_random()
+	var sometimes := _unlocked(data.sometimes, data)
+	if not sometimes.is_empty() and randf() < data.sometimes_chance:
+		return sometimes.pick_random()
+	var favorite := _favorite(data)
+	if _is_unlocked(favorite):
+		return favorite
+	return default_recipe
+
+func _favorite(data: CustomerData) -> Recipe:
+	return data.favorite if data.favorite != null else default_recipe
+
+func _is_unlocked(recipe: Recipe) -> bool:
+	return _unlock_all or recipe.unlock_night <= night
+
+func _unlocked(recipes: Array[Recipe], data: CustomerData) -> Array[Recipe]:
+	var result: Array[Recipe] = []
+	for recipe in recipes:
+		if _is_unlocked(recipe) and recipe != data.hated:
+			result.append(recipe)
+	return result
 
 func _on_line_started(_index: int) -> void:
 	if is_instance_valid(_customer):
@@ -304,15 +374,19 @@ func _serve(item: Node3D) -> void:
 	_props.set_locked(item, true)
 	var liquid: Node = _props.liquid_of(item)
 	var data: CustomerData = _customer.data
-	var line := _judge(liquid.fill, liquid.spilled_total, data)
+	var order := _order if _order != null else default_recipe
+	var line := _judge(liquid, order, data)
 	_bubble.stop()
 	_bubble.start(PackedStringArray([line]), data.voice_pitch, data.text_speed)
 	_customer.react(_mood)
 	if _mood == Mood.ANGRY:
 		_customer.nervous()
-	var perfect: bool = liquid.fill >= perfect_fill and liquid.spilled_total <= perfect_spill
-	print("Served: fill %.3f (need >= %.2f), spilled %.3f (need <= %.2f) -> perfect: %s" \
-		% [liquid.fill, perfect_fill, liquid.spilled_total, perfect_spill, perfect])
+	var mix: float = order.difference(liquid.composition())
+	var layers := _layer_quality(liquid, order) if order.layered else 1.0
+	var perfect: bool = _mood == Mood.HAPPY and liquid.fill >= perfect_fill * order.fill \
+		and liquid.spilled_total <= perfect_spill and mix <= perfect_mix and layers >= perfect_layers
+	print("Served %s: fill %.3f (need >= %.2f), spilled %.3f (need <= %.2f), mix off %.2f, layers %.2f -> perfect: %s" \
+		% [order.name, liquid.fill, perfect_fill * order.fill, liquid.spilled_total, perfect_spill, mix, layers, perfect])
 	if perfect:
 		_rating = Rating.PERFECT
 		_customer.wink() # instead of the happy squint
@@ -384,6 +458,14 @@ func _drink(item: Node3D, customer: Node2D) -> bool:
 	var style: Array = DRINK_STYLES[_mood]
 	var gulps: int = style[0]
 	var sip: float = liquid.fill / gulps
+	var data: CustomerData = customer.data
+	# Rum hits harder than beer, cola not at all (Drink.strength).
+	var mix: Dictionary = liquid.composition()
+	var booze := 0.0
+	for drink: Drink in mix:
+		booze += mix[drink] * drink.strength
+	_drunk[data] = _drunk.get(data, 0.0) + booze
+	customer.drunk = _drunk[data]
 	for i in gulps:
 		if customer != _customer:
 			return false
@@ -426,30 +508,81 @@ func _on_slammed(strength: float, customer: Node2D) -> void:
 	_coins.jolt(her.x, strength)
 
 ## Sets the mood and rating (perfect is decided by the caller) and returns
-## what she says about the drink.
-func _judge(fill: float, spilled: float, data: CustomerData) -> String:
+## what she says about the drink. How full (against what the order calls
+## for) sets the mood; spilling a lot, a mix that's off and muddy layers
+## each cost a step. Not her drink at all (or the one she hates): angry.
+func _judge(liquid: Node, order: Recipe, data: CustomerData) -> String:
+	var fill: float = liquid.fill / order.fill
+	var spilled: float = liquid.spilled_total
 	if fill < 0.05:
 		_mood = Mood.ANGRY
 		_rating = Rating.EMPTY
 		return data.empty_line
+	var mix: Dictionary = liquid.composition()
+	var off := order.difference(mix)
+	if data.hated != null and data.hated != order and data.hated.difference(mix) < close_mix:
+		_mood = Mood.ANGRY
+		_rating = Rating.BAD
+		return data.hated_line
+	if off > wrong_mix:
+		_mood = Mood.ANGRY
+		_rating = Rating.BAD
+		return data.wrong_drink_line
 	if fill >= good_fill:
 		_mood = Mood.HAPPY
 	elif fill >= okay_fill:
 		_mood = Mood.MEH
 	else:
 		_mood = Mood.ANGRY
+	var complaint := ""
+	if off > close_mix and _mood > Mood.ANGRY:
+		_mood = (_mood - 1) as Mood
+		complaint = data.off_mix_line
+	if order.layered and _layer_quality(liquid, order) < clean_layers and _mood > Mood.ANGRY:
+		_mood = (_mood - 1) as Mood
+		complaint = data.muddy_line
 	if spilled > messy_spill and _mood > Mood.ANGRY:
 		_mood = (_mood - 1) as Mood
 		_rating = Rating.SPILLED
 	else:
 		_rating = [Rating.BAD, Rating.MEH, Rating.GOOD][_mood]
+	if not complaint.is_empty():
+		return complaint
+	# Her own lines are about her favorite; anything else gets the other ones.
+	var favorite := order == _favorite(data)
+	var lines: PackedStringArray
 	match _mood:
 		Mood.HAPPY:
-			return Array(data.happy_lines).pick_random()
+			lines = data.happy_lines if favorite else data.other_happy_lines
 		Mood.MEH:
-			return Array(data.meh_lines).pick_random()
+			lines = data.meh_lines if favorite else data.other_meh_lines
 		_:
-			return Array(data.angry_lines).pick_random()
+			lines = data.angry_lines if favorite else data.other_angry_lines
+	return (Array(lines).pick_random() as String).format({"drink": order.name})
+
+## How well a layered drink came out (0..1): how pure its layers are, by
+## amount; 0 if they aren't in the recipe's order (bottom first). Layers
+## thinner than min_layer are ignored for the order.
+func _layer_quality(liquid: Node, order: Recipe) -> float:
+	var sequence: Array[Drink] = []
+	var clean := 0.0
+	var total := 0.0
+	for layer: Dictionary in liquid.layers():
+		var amount := 0.0
+		var top_drink: Drink
+		for drink: Drink in layer:
+			amount += layer[drink]
+			if top_drink == null or layer[drink] > layer[top_drink]:
+				top_drink = drink
+		if amount <= 0.0:
+			continue
+		clean += layer[top_drink]
+		total += amount
+		if amount >= min_layer and (sequence.is_empty() or sequence.back() != top_drink):
+			sequence.append(top_drink)
+	if total <= 0.0 or sequence != order.drinks:
+		return 0.0
+	return clean / total
 
 func _on_dialogue_finished() -> void:
 	if _phase == Phase.REACTING:
@@ -500,7 +633,16 @@ func _unhandled_input(event: InputEvent) -> void:
 				_spawn(0)
 			KEY_2:
 				_spawn(1)
+			KEY_3:
+				_spawn(2)
+			KEY_H:
+				if is_instance_valid(_customer):
+					_customer.drunk += 1.0
+					_customer.hiccup()
 			KEY_N:
 				_day_time = day_seconds
+			KEY_U:
+				_unlock_all = not _unlock_all
+				print("Every drink unlocked: ", _unlock_all)
 			KEY_R:
 				Transition.reload_scene()

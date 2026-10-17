@@ -31,6 +31,8 @@ const HOP_GRAVITY := 30.0 # 3D units/s²
 @onready var _ship_viewport: SubViewport = $ShipViewport
 @onready var _play: TextureButton = $Buttons/Play
 @onready var _quit: TextureButton = $Buttons/Quit
+@onready var _options: TextureButton = $Buttons/Options
+@onready var _options_menu: CanvasLayer = $ScrollMenu
 
 var _time := 0.0
 var _tug_base_y := 0.0
@@ -52,6 +54,7 @@ func _ready() -> void:
 	_tug_base_y = _tug.position.y
 	_play.pressed.connect(_on_play)
 	_quit.pressed.connect(get_tree().quit)
+	_options.pressed.connect(_options_menu.open_options)
 	# Loop the whole file seamlessly (the import has looping off).
 	var loop := MUSIC.duplicate() as AudioStreamWAV
 	loop.loop_mode = AudioStreamWAV.LOOP_FORWARD
@@ -59,6 +62,7 @@ func _ready() -> void:
 	loop.loop_end = int(MUSIC.get_length() * MUSIC.mix_rate)
 	_music = AudioStreamPlayer.new()
 	_music.stream = loop
+	_music.bus = &"Music"
 	_music.volume_db = music_volume_db
 	add_child(_music)
 	_music.play()

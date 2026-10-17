@@ -16,6 +16,9 @@
 [ext_resource type="PackedScene" path="res://ui/night_card.tscn" id="14"]
 [ext_resource type="Texture2D" path="res://assets/bar/sky_night.png" id="15"]
 [ext_resource type="PackedScene" path="res://ui/kiss_layer.tscn" id="16"]
+[ext_resource type="PackedScene" path="res://menu/scroll_menu.tscn" id="17"]
+[ext_resource type="PackedScene" path="res://scenery/bottle_rail.tscn" id="18"]
+[ext_resource type="PackedScene" path="res://scenery/rum_rope.tscn" id="19"]
 
 [node name="Main" type="Node2D" unique_id=368604310]
 script = ExtResource("1")
@@ -45,10 +48,19 @@ z_index = 1
 texture = ExtResource("3")
 centered = false
 
+[node name="RumRope" parent="." instance=ExtResource("19")]
+z_index = 4
+bar_props_path = NodePath("../BarProps")
+tap_path = NodePath("../TapTray")
+
 [node name="TapTray" parent="." unique_id=2025248470 instance=ExtResource("9")]
 z_index = 4
-position = Vector2(0, 10)
+position = Vector2(0, 80)
 bar_props_path = NodePath("../BarProps")
+
+[node name="BottleRail" parent="." instance=ExtResource("18")]
+bar_props_path = NodePath("../BarProps")
+z_index = 5
 
 [node name="BarProps" parent="." unique_id=2199955 instance=ExtResource("6")]
 z_index = 3
@@ -63,6 +75,7 @@ z_index = 5
 [node name="Music" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("11")
 volume_db = -8.0
+bus = &"Music"
 autoplay = true
 process_mode = 3
 
@@ -76,3 +89,5 @@ z_index = 5
 [node name="NightCard" parent="." instance=ExtResource("14")]
 
 [node name="KissLayer" parent="." instance=ExtResource("16")]
+
+[node name="ScrollMenu" parent="." instance=ExtResource("17")]

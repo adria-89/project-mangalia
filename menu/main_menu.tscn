@@ -9,6 +9,8 @@
 [ext_resource type="Texture2D" uid="uid://dpj6vc1aw1o6l" path="res://assets/ui/ui_scroll.png" id="7"]
 [ext_resource type="Script" uid="uid://dyoeeqoyslibb" path="res://menu/scroll_button.gd" id="8"]
 [ext_resource type="FontFile" uid="uid://4bfw6655c2wh" path="res://assets/ui/alagard.ttf" id="9"]
+[ext_resource type="PackedScene" path="res://menu/scroll_button.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://menu/scroll_menu.tscn" id="11"]
 
 [sub_resource type="PanoramaSkyMaterial" id="SkyMat"]
 panorama = ExtResource("2")
@@ -110,9 +112,9 @@ texture = ExtResource("6")
 
 [node name="Play" type="TextureButton" parent="Buttons" unique_id=611352782]
 offset_left = 345.0
-offset_top = 170.0
+offset_top = 165.0
 offset_right = 475.0
-offset_bottom = 229.0
+offset_bottom = 224.0
 texture_normal = ExtResource("7")
 ignore_texture_size = true
 stretch_mode = 0
@@ -129,11 +131,18 @@ label_settings = SubResource("LabelSettings_button")
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="Options" parent="Buttons" instance=ExtResource("10")]
+offset_left = 345.0
+offset_top = 225.0
+offset_right = 475.0
+offset_bottom = 284.0
+text = "Options"
+
 [node name="Quit" type="TextureButton" parent="Buttons" unique_id=898974759]
 offset_left = 345.0
-offset_top = 238.0
+offset_top = 285.0
 offset_right = 475.0
-offset_bottom = 297.0
+offset_bottom = 344.0
 texture_normal = ExtResource("7")
 ignore_texture_size = true
 stretch_mode = 0
@@ -151,3 +160,6 @@ text = "Quit"
 label_settings = SubResource("LabelSettings_button")
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="ScrollMenu" parent="." instance=ExtResource("11")]
+pausable = false

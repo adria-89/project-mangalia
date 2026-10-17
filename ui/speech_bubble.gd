@@ -47,7 +47,7 @@ func start(lines: PackedStringArray, voice_pitch: float = 1.0, text_speed: float
 	_lines = lines
 	_hold_last = hold_last
 	_voice_pitch = voice_pitch
-	_text_speed = text_speed
+	_text_speed = text_speed * Settings.text_speed_scale()
 	_index = -1
 	visible = true
 	_next_line()

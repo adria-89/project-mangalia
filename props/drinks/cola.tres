@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Drink" format=3]
+
+[ext_resource type="Script" path="res://props/drink.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+name = "Cola"
+color = Color(0.24, 0.09, 0.04, 1)
+surface_color = Color(0.46, 0.26, 0.15, 1)
+density = 1.04
+foaminess = 0.25
+stream_color = Color(0.3, 0.12, 0.06, 1)
+foam_color = Color(0.8, 0.64, 0.5, 1)
+carbonated = true
+fizz_color = Color(0.5, 0.3, 0.18, 1)
