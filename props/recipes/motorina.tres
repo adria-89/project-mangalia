@@ -1,16 +1,13 @@
-[gd_resource type="Resource" script_class="Recipe" format=3]
+[gd_resource type="Resource" script_class="Recipe" format=3 uid="uid://clrcg8wpa1qhx"]
 
-[ext_resource type="Script" path="res://props/recipe.gd" id="1"]
-[ext_resource type="Script" path="res://props/drink.gd" id="9"]
+[ext_resource type="Script" uid="uid://cov1cib5bp6gu" path="res://props/recipe.gd" id="1"]
 [ext_resource type="Resource" path="res://props/drinks/beer.tres" id="2"]
 [ext_resource type="Resource" path="res://props/drinks/cola.tres" id="3"]
+[ext_resource type="Script" uid="uid://c28h4k4k73yiv" path="res://props/drink.gd" id="9"]
 
 [resource]
 script = ExtResource("1")
-name = "Motorina"
+name = "Motorină"
 drinks = Array[ExtResource("9")]([ExtResource("2"), ExtResource("3")])
-shares = PackedFloat32Array(0.5, 0.5)
-layered = false
-fill = 1.0
 unlock_night = 1
-order_line = "A Motorina. Beer and cola."
+order_line = "A Motorină. Beer and cola."

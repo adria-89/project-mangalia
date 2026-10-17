@@ -1,15 +1,15 @@
 [gd_resource type="Resource" script_class="CustomerData" format=3 uid="uid://ckc2twmvbapho"]
 
 [ext_resource type="Script" uid="uid://dqax1q7e38by4" path="res://customer/customer_data.gd" id="1"]
-[ext_resource type="Script" path="res://props/recipe.gd" id="r0"]
-[ext_resource type="Resource" path="res://props/recipes/beer.tres" id="r_beer"]
-[ext_resource type="Resource" path="res://props/recipes/rum.tres" id="r_rum"]
-[ext_resource type="Resource" path="res://props/recipes/cuba_libre.tres" id="r_cuba_libre"]
-[ext_resource type="Resource" path="res://props/recipes/motorina.tres" id="r_motorina"]
 [ext_resource type="Texture2D" uid="uid://rebcxnmjv76y" path="res://assets/chars/foid_placeholder2.png" id="2"]
 [ext_resource type="Texture2D" uid="uid://cdihx1okpmuyc" path="res://assets/chars/foid_placeholder2_mask.png" id="3"]
 [ext_resource type="Script" uid="uid://dbc5py7jp16ic" path="res://customer/dialogue_set.gd" id="4"]
 [ext_resource type="Texture2D" uid="uid://djseeaqdbhnx7" path="res://assets/chars/foid_placeholder2_mask_eyes.png" id="5"]
+[ext_resource type="Script" uid="uid://cov1cib5bp6gu" path="res://props/recipe.gd" id="r0"]
+[ext_resource type="Resource" path="res://props/recipes/beer.tres" id="r_beer"]
+[ext_resource type="Resource" path="res://props/recipes/cuba_libre.tres" id="r_cuba_libre"]
+[ext_resource type="Resource" uid="uid://clrcg8wpa1qhx" path="res://props/recipes/motorina.tres" id="r_motorina"]
+[ext_resource type="Resource" path="res://props/recipes/rum.tres" id="r_rum"]
 
 [sub_resource type="Resource" id="Set_again"]
 script = ExtResource("4")
@@ -45,18 +45,21 @@ happy_lines = PackedStringArray("...Fine. That\'s acceptable.")
 meh_lines = PackedStringArray("I\'ve had worse. At funerals.")
 angry_lines = PackedStringArray("This is an insult to my ancestors.")
 tip_good = 2
+favorite = ExtResource("r_beer")
+sometimes = Array[ExtResource("r0")]([ExtResource("r_rum"), ExtResource("r_cuba_libre")])
+hated = ExtResource("r_motorina")
+hated_line = "Motorină. Do I look like a tugboat to you."
+order_lines = {
+"Cuba Libre": "Cuba Libre. Mixed. It's not a science project.",
+"Rum": "Rum. A shot. Don't drown it."
+}
+other_happy_lines = PackedStringArray("...Fine. That\'s an acceptable {drink}.")
+other_meh_lines = PackedStringArray("I\'ve had worse {drink}s. At funerals.")
+other_angry_lines = PackedStringArray("This {drink} is an insult to my ancestors.")
+wrong_drink_line = "That is not what I ordered. Try listening."
+off_mix_line = "Who taught you to mix. Nobody, clearly."
 voice_pitch = 0.8
 jiggle_stiffness = 190.0
 jiggle_damping = 8.0
 jiggle_inertia = 0.8
 jiggle_max = 5.0
-favorite = ExtResource("r_beer")
-sometimes = Array[ExtResource("r0")]([ExtResource("r_rum"), ExtResource("r_cuba_libre")])
-hated = ExtResource("r_motorina")
-hated_line = "Motorina. Do I look like a tugboat to you."
-order_lines = {"Rum": "Rum. A shot. Don't drown it.", "Cuba Libre": "Cuba Libre. Mixed. It's not a science project."}
-wrong_drink_line = "That is not what I ordered. Try listening."
-off_mix_line = "Who taught you to mix. Nobody, clearly."
-other_happy_lines = PackedStringArray("...Fine. That's an acceptable {drink}.")
-other_meh_lines = PackedStringArray("I've had worse {drink}s. At funerals.")
-other_angry_lines = PackedStringArray("This {drink} is an insult to my ancestors.")

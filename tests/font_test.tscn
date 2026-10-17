@@ -1,0 +1,89 @@
+[gd_scene format=3 uid="uid://di70y3pdg10oy"]
+
+[ext_resource type="FontFile" uid="uid://4bfw6655c2wh" path="res://assets/ui/alagard.ttf" id="1_mssp5"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_big"]
+font = ExtResource("1_mssp5")
+font_size = 32
+font_color = Color(0.98, 0.93, 0.78, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_small"]
+font = ExtResource("1_mssp5")
+font_color = Color(0.98, 0.93, 0.78, 1)
+
+[node name="FontTest" type="Control" unique_id=1103321937]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="." unique_id=450884957]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.16, 0.1, 0.07, 1)
+
+[node name="Lines" type="VBoxContainer" parent="." unique_id=546871218]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = -12.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[node name="Letters" type="Label" parent="Lines" unique_id=1267522534]
+layout_mode = 2
+text = "ĂÂÎȘȚ ăâîșț"
+label_settings = SubResource("LabelSettings_big")
+
+[node name="Pangram" type="Label" parent="Lines" unique_id=1124366692]
+layout_mode = 2
+text = "Muzicologă în bej vând whisky și tequila, preț fix."
+label_settings = SubResource("LabelSettings_small")
+
+[node name="Greeting" type="Label" parent="Lines" unique_id=2141349912]
+layout_mode = 2
+text = "Bună seara! Ce vreți să beți?"
+label_settings = SubResource("LabelSettings_small")
+
+[node name="Order" type="Label" parent="Lines" unique_id=1709999328]
+layout_mode = 2
+text = "Un rom Jamaica și o Cico, vă rog."
+label_settings = SubResource("LabelSettings_small")
+
+[node name="Food" type="Label" parent="Lines" unique_id=906751856]
+layout_mode = 2
+text = "Țuică, ștrudel, înghețată și pâine."
+label_settings = SubResource("LabelSettings_small")
+
+[node name="Bar" type="Label" parent="Lines" unique_id=1905590433]
+layout_mode = 2
+text = "Ăsta e cel mai bun bar din Mangalia."
+label_settings = SubResource("LabelSettings_small")
+
+[node name="Caps" type="Label" parent="Lines" unique_id=1341140362]
+layout_mode = 2
+text = "ÎNTREPRINDEREA DE VINURI ȘI SPIRTOASE CONSTANȚA"
+label_settings = SubResource("LabelSettings_small")
+
+[node name="Wrapped" type="Label" parent="Lines" unique_id=193740563]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+text = "ÎN ROMÂNIA, ÂNCĂ O ȚUICĂ? Ăsta-i ultimul pahar, îți jur pe mama mea. Ăla de lângă ușă plătește."
+label_settings = SubResource("LabelSettings_small")
+autowrap_mode = 3
+
+[node name="Cedilla" type="Label" parent="Lines" unique_id=2037772483]
+layout_mode = 2
+text = "Cu sedilă (vechi): şi ţuică, ŞI ŢUICĂ"
+label_settings = SubResource("LabelSettings_small")

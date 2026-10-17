@@ -385,7 +385,7 @@ func start_drinking() -> void:
 	_drinking = true
 	set_face(Face.KISS)
 
-## A quick wink (SHUKAR!, dropping her tip).
+## A quick wink (ȘUKAR!, dropping her tip).
 func wink() -> void:
 	set_face(Face.WINK, 0.8)
 

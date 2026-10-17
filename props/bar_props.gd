@@ -471,8 +471,7 @@ func _smash(at: Vector2) -> void:
 	if liquid != null:
 		liquid.fill = 0.0
 		liquid.spilled_total = 0.0
-	# Out of sight, where the tankard went: they jump into view from there.
-	_shards.burst(at + Vector2(_edge_side * 12.0, 24.0), 18, -_edge_side)
+	#_shards.burst(at + Vector2(_edge_side * 12.0, 24.0), 18, -_edge_side)
 	_break_sound.stream = BREAK_SOUNDS.pick_random()
 	_break_sound.pitch_scale = randf_range(0.92, 1.08)
 	_break_sound.play()

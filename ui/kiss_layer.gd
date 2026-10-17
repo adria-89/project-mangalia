@@ -8,6 +8,8 @@ extends CanvasLayer
 const KISS_TEXTURE: Texture2D = preload("res://assets/ui/kiss_love.png")
 const SHOUT_FONT: Font = preload("res://assets/ui/alagard.ttf")
 const HEART_TEXTURE: Texture2D = preload("res://assets/ui/heart.png")
+## Font size at which one of Alagard's pixels is one screen pixel.
+const FONT_PIXELS := 16
 
 ## Size of a print relative to the 150 px texture.
 @export var kiss_scale: float = 0.65
@@ -20,7 +22,8 @@ const HEART_TEXTURE: Texture2D = preload("res://assets/ui/heart.png")
 @export var edge_inset: float = 45.0
 ## Prints keep at least this far apart (px).
 @export var min_spacing: float = 90.0
-## Font size of the rating pop-up at full size (see shout()).
+## Font size of the rating pop-up at full size (see shout()). Snapped to
+## whole multiples of FONT_PIXELS so the pixel font stays crisp.
 @export var shout_size: int = 48
 
 @export_group("Impact")
@@ -109,7 +112,7 @@ func shout(text: String, color: Color, size_scale: float = 1.0) -> void:
 	label.text = text
 	var settings := LabelSettings.new()
 	settings.font = SHOUT_FONT
-	settings.font_size = roundi(shout_size * size_scale)
+	settings.font_size = maxi(roundi(shout_size * size_scale / FONT_PIXELS), 1) * FONT_PIXELS
 	settings.font_color = color
 	settings.outline_size = 8
 	settings.outline_color = Color(0.2, 0.05, 0.1)
@@ -118,7 +121,7 @@ func shout(text: String, color: Color, size_scale: float = 1.0) -> void:
 	label.reset_size()
 	var screen := get_viewport().get_visible_rect().size
 	label.pivot_offset = label.size / 2.0
-	label.position = Vector2(screen.x / 2.0, screen.y * 0.3) - label.size / 2.0
+	label.position = (Vector2(screen.x / 2.0, screen.y * 0.3) - label.size / 2.0).round()
 	label.rotation = deg_to_rad(randf_range(-6.0, 6.0))
 	label.scale = Vector2.ONE * 0.3
 	var tween := create_tween()

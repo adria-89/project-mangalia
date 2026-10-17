@@ -1,12 +1,6 @@
 [gd_resource type="Resource" script_class="CustomerData" format=3 uid="uid://binb1qc67r3lq"]
 
 [ext_resource type="Script" uid="uid://dqax1q7e38by4" path="res://customer/customer_data.gd" id="1"]
-[ext_resource type="Script" path="res://props/recipe.gd" id="r0"]
-[ext_resource type="Resource" path="res://props/recipes/beer.tres" id="r_beer"]
-[ext_resource type="Resource" path="res://props/recipes/motorina.tres" id="r_motorina"]
-[ext_resource type="Resource" path="res://props/recipes/prenadez.tres" id="r_prenadez"]
-[ext_resource type="Resource" path="res://props/recipes/mangaliene.tres" id="r_mangaliene"]
-[ext_resource type="Resource" path="res://props/recipes/cola.tres" id="r_cola"]
 [ext_resource type="Texture2D" uid="uid://3v02vrmx5ws5" path="res://assets/chars/lizard/lizard_default.png" id="2"]
 [ext_resource type="Texture2D" uid="uid://uij0yc3iiyq" path="res://assets/chars/lizard/lizard_mask.png" id="3"]
 [ext_resource type="Script" uid="uid://dbc5py7jp16ic" path="res://customer/dialogue_set.gd" id="4"]
@@ -16,6 +10,12 @@
 [ext_resource type="Texture2D" uid="uid://uffh5lq5lnhw" path="res://assets/chars/lizard/lizard_blush.png" id="8"]
 [ext_resource type="Texture2D" uid="uid://2otheq8kpbgk" path="res://assets/chars/lizard/lizard_eyes_wink.png" id="9"]
 [ext_resource type="Texture2D" uid="uid://ct4nwx4oh57aw" path="res://assets/chars/lizard/lizard_nervous.png" id="10"]
+[ext_resource type="Script" uid="uid://cov1cib5bp6gu" path="res://props/recipe.gd" id="r0"]
+[ext_resource type="Resource" path="res://props/recipes/beer.tres" id="r_beer"]
+[ext_resource type="Resource" path="res://props/recipes/cola.tres" id="r_cola"]
+[ext_resource type="Resource" path="res://props/recipes/mangaliene.tres" id="r_mangaliene"]
+[ext_resource type="Resource" uid="uid://clrcg8wpa1qhx" path="res://props/recipes/motorina.tres" id="r_motorina"]
+[ext_resource type="Resource" path="res://props/recipes/prenadez.tres" id="r_prenadez"]
 
 [sub_resource type="Resource" id="Set_crab"]
 script = ExtResource("4")
@@ -51,6 +51,21 @@ happy_lines = PackedStringArray("OHHH. That\'s the stuff. You\'re hired. By me."
 meh_lines = PackedStringArray("Bit sad, but I\'ll drink anything.")
 angry_lines = PackedStringArray("Did you pour it with your feet?")
 tip_good = 4
+favorite = ExtResource("r_beer")
+sometimes = Array[ExtResource("r0")]([ExtResource("r_motorina")])
+drunk_orders = Array[ExtResource("r0")]([ExtResource("r_prenadez"), ExtResource("r_mangaliene")])
+hated = ExtResource("r_cola")
+hated_line = "Cola?? Do I look like a CHILD to you?"
+order_lines = {
+"Mangaliene": "MANGALIENE! All three! In layers! Like a cake!",
+"Motorină": "A Motorină! Fuel me up, captain!",
+"Prenadez": "Ooh, the fancy one! A Prenadez! With the floaty rum!"
+}
+other_happy_lines = PackedStringArray("OHHH. A {drink}! That\'s the stuff. You\'re hired. By me.", "Beautiful {drink}. I\'m crying. It\'s the {drink}.")
+other_meh_lines = PackedStringArray("Bit sad for a {drink}, but I\'ll drink anything.")
+other_angry_lines = PackedStringArray("Did you pour this {drink} with your feet?")
+wrong_drink_line = "Huh? That's not what I asked for. ...Is it a surprise?"
+muddy_line = "Where are the LAYERS? It's just brown!"
 voice_pitch = 1.25
 jiggle_stiffness = 110.0
 jiggle_damping = 4.5
@@ -61,14 +76,3 @@ face_kiss = ExtResource("7")
 face_wink = ExtResource("9")
 blush = ExtResource("8")
 nervous = ExtResource("10")
-favorite = ExtResource("r_beer")
-sometimes = Array[ExtResource("r0")]([ExtResource("r_motorina")])
-drunk_orders = Array[ExtResource("r0")]([ExtResource("r_prenadez"), ExtResource("r_mangaliene")])
-hated = ExtResource("r_cola")
-hated_line = "Cola?? Do I look like a CHILD to you?"
-order_lines = {"Motorina": "A Motorina! Fuel me up, captain!", "Prenadez": "Ooh, the fancy one! A Prenadez! With the floaty rum!", "Mangaliene": "MANGALIENE! All three! In layers! Like a cake!"}
-wrong_drink_line = "Huh? That's not what I asked for. ...Is it a surprise?"
-muddy_line = "Where are the LAYERS? It's just brown!"
-other_happy_lines = PackedStringArray("OHHH. A {drink}! That's the stuff. You're hired. By me.", "Beautiful {drink}. I'm crying. It's the {drink}.")
-other_meh_lines = PackedStringArray("Bit sad for a {drink}, but I'll drink anything.")
-other_angry_lines = PackedStringArray("Did you pour this {drink} with your feet?")

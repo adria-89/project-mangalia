@@ -26,8 +26,8 @@ enum Rating { PERFECT, GOOD, MEH, SPILLED, BAD, EMPTY }
 
 ## Per rating: the word that pops up, its color and size (1 = full size).
 const RATING_STYLES := {
-	Rating.PERFECT: ["SHUKAR!", Color(1, 0.85, 0.35), 1.0],
-	Rating.GOOD: ["MISHTO!", Color(1, 0.93, 0.65), 0.8],
+	Rating.PERFECT: ["ȘUKAR!", Color(1, 0.85, 0.35), 1.0],
+	Rating.GOOD: ["MIȘTO!", Color(1, 0.93, 0.65), 0.8],
 	Rating.MEH: ["meh...", Color(0.75, 0.72, 0.68), 0.65],
 	Rating.SPILLED: ["TULAI!", Color(1, 0.45, 0.2), 0.8],
 	Rating.BAD: ["AOLEU!", Color(0.9, 0.15, 0.1), 0.8],
@@ -188,7 +188,7 @@ func _end_day() -> void:
 	get_tree().paused = false
 	_day_running = true
 
-## Today's drinks for the night card, e.g. "2 SHUKAR!  1 meh...". Only
+## Today's drinks for the night card, e.g. "2 ȘUKAR!  1 meh...". Only
 ## ratings that happened are listed.
 func _tally_text() -> String:
 	var parts := PackedStringArray()

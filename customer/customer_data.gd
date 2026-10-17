@@ -48,7 +48,7 @@ extends Resource
 @export var hated: Recipe
 @export var hated_line: String = "I would NEVER drink this."
 ## What she says ordering something other than her favorite, by recipe name
-## (e.g. "Motorina": "Fuel me up!"). Missing ones use the recipe's own line.
+## (e.g. "Motorină": "Fuel me up!"). Missing ones use the recipe's own line.
 @export var order_lines: Dictionary = {}
 ## Reactions to anything but her favorite (the happy / meh / angry lines
 ## above are for the favorite). {drink} becomes what she ordered.
@@ -86,7 +86,7 @@ enum Bust { SMALL, MEDIUM, LARGE }
 @export var face_happy: Texture2D
 ## Puckered lips: the lean-in for a kiss, and while the tankard is at her lips.
 @export var face_kiss: Texture2D
-## One eye shut: a SHUKAR! drink, and whenever she drops her tip.
+## One eye shut: a ȘUKAR! drink, and whenever she drops her tip.
 @export var face_wink: Texture2D
 ## Transparent overlay (same canvas) stacked on top of any face: faded in
 ## after a kiss and once she's finished a drink she liked. Optional.
