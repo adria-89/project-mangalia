@@ -8,8 +8,8 @@
 [node name="Rum" type="Node3D"]
 script = ExtResource("1")
 drink = ExtResource("3")
-mouth = Vector3(0.065, 0.61, 0)
-grip_height = 0.2
+mouth = Vector3(0.065, 0.68, 0)
+grip_height = 0.27
 pour_rate = 0.18
 stream_width = 3.0
 glug_size = 0.4
@@ -25,8 +25,10 @@ outline_thickness_px = 3.0
 script = ExtResource("4")
 default_drink = ExtResource("3")
 body_mesh = "Glass"
-measure_at = 0.87
-full_at = 0.86
+measure_at = 0.89
+full_at = 0.84
+base_ratio = 0.09
+shape_meshes = PackedStringArray("Glass", "GlassNeck")
 spills = false
 foam_per_pour = 0.0
 min_foam = 0.0

@@ -60,7 +60,7 @@ static var _knot_texture: ImageTexture
 	Vector3(115.0, 24.0, 3.75), Vector3(123.0, 28.0, 3.5),
 ]
 ## Height of the neck, where the cord is tied and it pivots (3D units, bottle space).
-@export var tie_height: float = 0.44
+@export var tie_height: float = 0.52
 ## Mouse closer than this to the top edge (and within reveal_half_width of
 ## the anchor) brings it down.
 @export var hover_zone_height: float = 30.0
@@ -91,6 +91,9 @@ static var _knot_texture: ImageTexture
 @export var tap_knock_hide: float = 0.25
 
 @export_group("Cord")
+## Each bottle's cord (px wide), and the knot round its neck (times its pixel size).
+@export var cord_width: float = 7.5
+@export var knot_scale: float = 1.5
 ## Each bottle springs back to its place in the bundle on its cord: stiffness
 ## and damping (low damping = it overshoots and bounces).
 @export var cord_stiffness: float = 220.0
@@ -167,7 +170,7 @@ func _ready() -> void:
 	_display.texture = $SubViewport.get_texture()
 	_stream.props = _props
 	_smash.volume_db = smash_volume_db
-	_main_rope = _rope_line(8.0)
+	_main_rope = _rope_line(10.0)
 	for spot in slots:
 		_add_slot(spot)
 	restock()
@@ -234,7 +237,7 @@ static func _make_knot_texture() -> ImageTexture:
 func _add_slot(spot: Vector3) -> void:
 	var bottle: Bottle = bottle_scene.instantiate()
 	_bottles.add_child(bottle)
-	var lines: Array[Line2D] = [_rope_line(6.0)]
+	var lines: Array[Line2D] = [_rope_line(cord_width)]
 	# The knot round its neck, over the glass (placed in _update_cords).
 	if _knot_texture == null:
 		_knot_texture = _make_knot_texture()
@@ -517,7 +520,7 @@ func _update_cords(delta: float) -> void:
 		knot_sprite.visible = true
 		knot_sprite.position = _camera.unproject_position(bottle.global_transform * Vector3(0.0, tie_height, 0.0))
 		knot_sprite.rotation = -slot.angle
-		knot_sprite.scale = Vector2.ONE * depth / (depth if slot == _carried else slot.depth)
+		knot_sprite.scale = Vector2.ONE * knot_scale * depth / (depth if slot == _carried else slot.depth)
 
 ## Drink comes out of the pulled-out bottle once it's tipped past its
 ## pour_from_deg (and until it's empty): the further over, the more open the stream.

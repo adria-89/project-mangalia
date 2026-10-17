@@ -20,6 +20,7 @@ const LUMP_NOISE: Texture2D = preload("res://assets/fx/noise/noise_big_cells.png
 const CLOUD_NOISE: Texture2D = preload("res://assets/fx/noise/noise_clouds.png")
 ## Must match the array sizes in liquid.gdshader.
 const MAX_LAYERS := 8
+const PROFILE_STEPS := 32
 
 ## What add() pours when it isn't told, and what raising fill adds to an empty one.
 @export var default_drink: Drink = preload("res://props/drinks/beer.tres")
@@ -59,6 +60,12 @@ var foam_color: Color = Color(1.0, 0.97, 0.88)
 @export_range(0.0, 1.0) var measure_at: float = 1.0
 ## Where full is, as a fraction of the measured height.
 @export_range(0.0, 1.0) var full_at: float = 0.97
+## Fill the inside of these meshes (by node name, e.g. a bottle's body and
+## neck) instead of a straight cylinder, so the drink follows the shoulder up
+## into the neck (the Half-Life: Alyx trick: same cut, the container's own
+## shape). Then base_ratio and full_at are fractions of all of them together,
+## and fill is volume: the neck drains fast, the body slowly. Empty = cylinder.
+@export var shape_meshes: PackedStringArray = []
 
 @export_group("Slosh")
 @export var slosh_stiffness: float = 70.0
@@ -115,6 +122,12 @@ var _material: ShaderMaterial
 var _axis_bottom := Vector3.ZERO # local, in the prop's space
 var _axis_top := Vector3.ZERO
 var _radius := 0.0
+## The drink's radius at the rim (= _radius for a cylinder).
+var _opening_radius := 0.0
+## Drink up to each of PROFILE_STEPS + 1 evenly spaced heights (bottom to
+## rim), as a fraction of full; and the radius there as a fraction of _radius.
+var _profile_volume := PackedFloat32Array()
+var _profile_radius := PackedFloat32Array()
 var _slosh := Vector2.ZERO
 var _slosh_velocity := Vector2.ZERO
 var _prev_point := Vector3.ZERO
@@ -154,28 +167,69 @@ func _ready() -> void:
 	var sides := corner_angles.size()
 	if sides < 3 or sides > 32:
 		sides = 16 # not a clean polygon: plain round cylinder
+	# The wall's outline: inner radius at each height of the shape meshes.
+	var profile := PackedVector2Array()
+	if not shape_meshes.is_empty():
+		profile = _profile(_rim_points(prop, -INF, INF, shape_meshes), center)
+	if profile.size() < 2:
+		if not shape_meshes.is_empty():
+			push_warning("%s: no shape_meshes %s found, using a cylinder" % [prop.name, shape_meshes])
+		profile = PackedVector2Array()
+	else:
+		box.position.y = profile[0].x
+		box.size.y = profile[profile.size() - 1].x - profile[0].x
 	var bottom := box.position.y + box.size.y * base_ratio
 	var rim := box.position.y + box.size.y * full_at
 	_axis_bottom = Vector3(center.x, bottom, center.z)
 	_axis_top = Vector3(center.x, rim, center.z)
 
-	var cylinder := CylinderMesh.new()
-	cylinder.top_radius = _radius
-	cylinder.bottom_radius = _radius
-	# Taller than the inside by max_dome, for the head to pile up over the rim.
-	cylinder.height = (rim - bottom) * (1.0 + max_dome)
-	cylinder.radial_segments = sides
-	cylinder.rings = 1
+	var mesh: Mesh
+	_profile_volume.resize(PROFILE_STEPS + 1)
+	_profile_radius.resize(PROFILE_STEPS + 1)
+	if profile.is_empty():
+		var cylinder := CylinderMesh.new()
+		cylinder.top_radius = _radius
+		cylinder.bottom_radius = _radius
+		# Taller than the inside by max_dome, for the head to pile up over the rim.
+		cylinder.height = (rim - bottom) * (1.0 + max_dome)
+		cylinder.radial_segments = sides
+		cylinder.rings = 1
+		mesh = cylinder
+		_opening_radius = _radius
+		for i in PROFILE_STEPS + 1:
+			_profile_volume[i] = float(i) / PROFILE_STEPS
+			_profile_radius[i] = 1.0
+	else:
+		# Up to the top of the shape: past the neck's mouth the head can't pile up.
+		mesh = _lathe(profile, bottom, profile[profile.size() - 1].x, sides)
+		_opening_radius = _radius_at(profile, rim) * inner_radius_ratio
+		# Volume up to each height: a slice's area goes with its radius².
+		var volume := 0.0
+		var prev_area := 0.0
+		for i in PROFILE_STEPS + 1:
+			var r := _radius_at(profile, lerpf(bottom, rim, float(i) / PROFILE_STEPS)) * inner_radius_ratio
+			_profile_radius[i] = r / _radius
+			var area := r * r
+			if i > 0:
+				volume += (area + prev_area) / 2.0
+			_profile_volume[i] = volume
+			prev_area = area
+		for i in PROFILE_STEPS + 1:
+			_profile_volume[i] /= volume
 	_material = ShaderMaterial.new()
 	_material.shader = LIQUID_SHADER
 	_material.set_shader_parameter("cells_noise", CELLS_NOISE)
 	_material.set_shader_parameter("lump_noise", LUMP_NOISE)
 	_material.set_shader_parameter("cloud_noise", CLOUD_NOISE)
+	_material.set_shader_parameter("profile_volume", _profile_volume)
+	_material.set_shader_parameter("profile_radius", _profile_radius)
 	_mesh_instance = MeshInstance3D.new()
 	_mesh_instance.name = "_Liquid"
-	_mesh_instance.mesh = cylinder
+	_mesh_instance.mesh = mesh
 	_mesh_instance.material_override = _material
-	_mesh_instance.position = _axis_bottom + Vector3(0.0, cylinder.height / 2.0, 0.0)
+	_mesh_instance.position = _axis_bottom
+	if mesh is CylinderMesh:
+		_mesh_instance.position.y += (mesh as CylinderMesh).height / 2.0
 	_mesh_instance.rotation.y = atan2(corner.x, corner.y)
 	_mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	prop.add_child.call_deferred(_mesh_instance)
@@ -262,14 +316,23 @@ func surface_world_point() -> Vector3:
 	var bottom := prop.global_transform * _axis_bottom
 	var top := prop.global_transform * _axis_top
 	var amount := clampf(fill, 0.0, 1.0)
-	var level := bottom.lerp(top, amount)
+	var level := bottom.lerp(top, _height_of(amount))
 	# Tipped past lying flat (a bottle pouring), the drink runs to the other
 	# end: measure the level from there instead, blending over the turn.
 	var upright := (top - bottom).normalized().dot(Sea.up_3d())
 	var flip := smoothstep(0.3, -0.3, upright)
 	if flip > 0.0:
-		level = level.lerp(top.lerp(bottom, amount), flip)
+		level = level.lerp(bottom.lerp(top, _height_of(1.0 - amount)), flip)
 	return level
+
+## How far up (fraction of bottom to rim) this much drink (fraction of full) reaches.
+func _height_of(amount: float) -> float:
+	for i in PROFILE_STEPS:
+		if amount <= _profile_volume[i + 1]:
+			var span := _profile_volume[i + 1] - _profile_volume[i]
+			var t := (amount - _profile_volume[i]) / span if span > 0.0 else 0.0
+			return (i + t) / PROFILE_STEPS
+	return 1.0
 
 ## Middle of the head's top (the surface if there's no drink), in world space:
 ## where a stream poured in from above meets the drink.
@@ -285,7 +348,7 @@ func opening_world_center() -> Vector3:
 
 func opening_world_radius() -> float:
 	var prop := get_parent() as Node3D
-	return (prop.global_transform.basis * Vector3(_radius / inner_radius_ratio, 0.0, 0.0)).length()
+	return (prop.global_transform.basis * Vector3(_opening_radius / inner_radius_ratio, 0.0, 0.0)).length()
 
 ## The point on the inner rim nearest a viewer (e.g. the camera), in world space:
 ## where the front wall starts hiding what's inside.
@@ -334,7 +397,7 @@ func _physics_process(delta: float) -> void:
 		_material.set_shader_parameter("axis_point", bottom)
 		_material.set_shader_parameter("axis_up", (top - bottom).normalized())
 		_material.set_shader_parameter("axis_height", height)
-		_material.set_shader_parameter("radius", opening_world_radius() * inner_radius_ratio)
+		_material.set_shader_parameter("radius", (prop.global_transform.basis * Vector3(_radius, 0.0, 0.0)).length())
 		_material.set_shader_parameter("surface_color", surface_color)
 		_material.set_shader_parameter("foam_color", foam_color)
 		_update_layer_uniforms()
@@ -360,7 +423,7 @@ func _update_layer_uniforms() -> void:
 	_material.set_shader_parameter("layer_tops", tops)
 	_material.set_shader_parameter("layer_colors", colors)
 	_material.set_shader_parameter("layer_fizz", fizz)
-	_material.set_shader_parameter("fill_level", minf(fill, 1.0))
+	_material.set_shader_parameter("fill_level", _height_of(minf(fill, 1.0)))
 
 ## Sloshing harder than slosh_mix_from swaps a little drink between each
 ## pair of neighbouring layers, so they drift toward the same mix.
@@ -504,7 +567,7 @@ func _spill_over_rim(prop: Node3D, level: Vector3, normal: Vector3, delta: float
 	var worst_point := Vector3.ZERO
 	for i in 12:
 		var angle := TAU * i / 12.0
-		var rim_local := _axis_top + Vector3(cos(angle), 0.0, sin(angle)) * _radius
+		var rim_local := _axis_top + Vector3(cos(angle), 0.0, sin(angle)) * _opening_radius
 		var rim := prop.global_transform * rim_local
 		var below_surface := -normal.dot(rim - level)
 		if below_surface > worst:
@@ -516,16 +579,18 @@ func _spill_over_rim(prop: Node3D, level: Vector3, normal: Vector3, delta: float
 		spilled_total += amount
 		spilled.emit(worst_point, amount, false)
 
-## Mesh vertices (in the prop's space) between two heights, only from
-## body_mesh if it's set.
-func _rim_points(prop: Node3D, min_y: float, max_y: float) -> PackedVector3Array:
+## Mesh vertices (in the prop's space) between two heights, only from the
+## named meshes, or body_mesh if none are given and it's set.
+func _rim_points(prop: Node3D, min_y: float, max_y: float, names := PackedStringArray()) -> PackedVector3Array:
+	if names.is_empty() and not body_mesh.is_empty():
+		names = PackedStringArray([body_mesh])
 	var to_local := prop.global_transform.affine_inverse()
 	var points := PackedVector3Array()
 	for node in prop.find_children("*", "MeshInstance3D", true, false):
 		var mi := node as MeshInstance3D
 		if String(mi.name).begins_with("_") or mi.mesh == null:
 			continue
-		if not body_mesh.is_empty() and String(mi.name) != body_mesh:
+		if not names.is_empty() and not names.has(String(mi.name)):
 			continue
 		var xform := to_local * mi.global_transform
 		for surface in mi.mesh.get_surface_count():
@@ -534,3 +599,83 @@ func _rim_points(prop: Node3D, min_y: float, max_y: float) -> PackedVector3Array
 				if p.y >= min_y and p.y <= max_y:
 					points.append(p)
 	return points
+
+## The wall's outline, bottom to top: (height, inner radius around center)
+## for each ring of vertices. Points near the middle (a closed base, the
+## mouth's cap) aren't walls and are skipped.
+func _profile(points: PackedVector3Array, center: Vector3) -> PackedVector2Array:
+	var widest := 0.0
+	for p in points:
+		widest = maxf(widest, Vector2(p.x - center.x, p.z - center.z).length())
+	var rings := {}
+	for p in points:
+		var r := Vector2(p.x - center.x, p.z - center.z).length()
+		if r < widest * 0.2:
+			continue
+		var y := snappedf(p.y, 0.0001)
+		rings[y] = minf(rings.get(y, INF), r)
+	var heights := rings.keys()
+	heights.sort()
+	var profile := PackedVector2Array()
+	for y: float in heights:
+		profile.append(Vector2(y, rings[y]))
+	return profile
+
+## The outline's radius at height y, straight between its rings.
+func _radius_at(profile: PackedVector2Array, y: float) -> float:
+	if y <= profile[0].x:
+		return profile[0].y
+	for i in range(1, profile.size()):
+		if y <= profile[i].x:
+			var t := inverse_lerp(profile[i - 1].x, profile[i].x, y)
+			return lerpf(profile[i - 1].y, profile[i].y, t)
+	return profile[profile.size() - 1].y
+
+## The outline turned around the axis (sides corners, like CylinderMesh) from
+## bottom to top, closed at both ends, shrunk by inner_radius_ratio. Its
+## origin is the axis at bottom.
+func _lathe(profile: PackedVector2Array, bottom: float, top: float, sides: int) -> ArrayMesh:
+	var heights := PackedFloat32Array([bottom])
+	for ring in profile:
+		if ring.x > bottom + 0.0001 and ring.x < top - 0.0001:
+			heights.append(ring.x)
+	heights.append(top)
+	var rings: Array[PackedVector3Array] = []
+	for y in heights:
+		var r := _radius_at(profile, y) * inner_radius_ratio
+		var ring := PackedVector3Array()
+		for i in sides:
+			var angle := TAU * i / sides
+			ring.append(Vector3(sin(angle) * r, y - bottom, cos(angle) * r))
+		rings.append(ring)
+	var verts := PackedVector3Array()
+	for j in rings.size() - 1:
+		for i in sides:
+			var a := rings[j][i]
+			var b := rings[j][(i + 1) % sides]
+			var c := rings[j + 1][(i + 1) % sides]
+			var d := rings[j + 1][i]
+			var out := Vector3(a.x + b.x, 0.0, a.z + b.z)
+			_add_face(verts, a, b, c, out)
+			_add_face(verts, a, c, d, out)
+	var low := Vector3.ZERO
+	var high := Vector3(0.0, top - bottom, 0.0)
+	for i in sides:
+		_add_face(verts, low, rings[0][i], rings[0][(i + 1) % sides], Vector3.DOWN)
+		_add_face(verts, high, rings[-1][i], rings[-1][(i + 1) % sides], Vector3.UP)
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return mesh
+
+## One triangle, wound so its front faces out (Godot's front is clockwise).
+func _add_face(verts: PackedVector3Array, a: Vector3, b: Vector3, c: Vector3, out: Vector3) -> void:
+	if (b - a).cross(c - a).dot(out) > 0.0:
+		var swap := b
+		b = c
+		c = swap
+	verts.append(a)
+	verts.append(b)
+	verts.append(c)

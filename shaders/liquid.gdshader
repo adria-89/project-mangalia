@@ -21,8 +21,13 @@ uniform float layer_tops[8];
 uniform vec4 layer_colors[8] : source_color;
 // Fizz specks color; alpha = how fizzy the layer is (0 = still).
 uniform vec4 layer_fizz[8] : source_color;
-// Total drink (fraction of full): where the surface is.
+// Where the surface is: fraction of the height from bottom to rim.
 uniform float fill_level = 0.0;
+// The container's shape (container_liquid.gd), at 33 evenly spaced heights
+// from bottom to rim: drink up to there (fraction of full) and the drink's
+// radius there (fraction of radius). Straight lines and 1s for a cylinder.
+uniform float profile_volume[33];
+uniform float profile_radius[33];
 // How much the borders between layers wave (fraction of full), and how
 // thick the line drawn on them is.
 uniform float border_wave = 0.006;
@@ -38,7 +43,7 @@ uniform vec3 surface_normal = vec3(0.0, 1.0, 0.0);
 // Head thickness above the surface (world units); 0 = no head.
 uniform float foam_height = 0.0;
 // The container's axis: bottom of the drink, up direction, height to the rim
-// and the drink's radius, all in world space.
+// and the drink's radius (its body's, under the shoulder), all in world space.
 uniform vec3 axis_point = vec3(0.0);
 uniform vec3 axis_up = vec3(0.0, 1.0, 0.0);
 uniform float axis_height = 1.0;
@@ -81,6 +86,20 @@ uniform float fizz_top_boost = 2.5;
 uniform float dark_below = 0.35;
 
 varying vec3 world_pos;
+
+// Drink up to height t (fraction of bottom to rim), as a fraction of full.
+float volume_at(float t) {
+	float x = clamp(t, 0.0, 1.0) * 32.0;
+	int i = min(int(x), 31);
+	return mix(profile_volume[i], profile_volume[i + 1], x - float(i));
+}
+
+// The drink's radius (world units) at height t (fraction of bottom to rim).
+float radius_at(float t) {
+	float x = clamp(t, 0.0, 1.0) * 32.0;
+	int i = min(int(x), 31);
+	return radius * mix(profile_radius[i], profile_radius[i + 1], x - float(i));
+}
 
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
@@ -138,9 +157,9 @@ void fragment() {
 			float top = clamp(d / max(foam_top, 0.0001), 0.0, 1.0);
 			ALBEDO = foam_tone(vec2(angle * tiles, h / bubble_size), top);
 		} else {
-			// Which layer: how far up the drink this point is (fraction of
+			// Which layer: how much drink is below this point (fraction of
 			// full), with the borders waving a little so they read as liquid.
-			float level = fill_level + d / axis_height;
+			float level = volume_at(fill_level + d / axis_height);
 			level += sin(angle * TAU * 3.0 + TIME * 2.0) * border_wave;
 			int layer = max(layer_count - 1, 0);
 			for (int i = 0; i < layer_count - 1; i++) {
@@ -185,7 +204,7 @@ void fragment() {
 		// drink's side is in front anyway.
 		vec3 hit_rel = hit - axis_point;
 		vec3 hit_around = hit_rel - axis_up * dot(hit_rel, axis_up);
-		if (length(hit_around) <= radius) {
+		if (length(hit_around) <= radius_at(dot(hit_rel, axis_up) / axis_height) * 1.01) {
 			vec4 clip = PROJECTION_MATRIX * VIEW_MATRIX * vec4(hit, 1.0);
 			DEPTH = clip.z / clip.w;
 		}

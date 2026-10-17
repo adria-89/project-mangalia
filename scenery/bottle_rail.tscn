@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" path="res://assets/bar/naveta_back.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/bar/naveta_front.png" id="3"]
 [ext_resource type="Script" path="res://scenery/pour_stream.gd" id="6"]
+[ext_resource type="AudioStream" path="res://audio/bottle_pop.wav" id="7"]
 
 [node name="BottleRail" type="Node2D"]
 script = ExtResource("1")
@@ -48,6 +49,7 @@ fov = 40.0
 centered = false
 
 [node name="CapPop" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7")
 
 [node name="Smash" type="AudioStreamPlayer" parent="."]
 
