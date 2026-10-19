@@ -62,6 +62,33 @@ const DRINK_STYLES := {
 @export var fuel_cost_base: int = 2
 @export var fuel_cost_per_night: int = 2
 
+@export_group("Nights")
+## How rough the sea is each night (Sea.strength: 0 calm .. 2 storm), the
+## first night first; nights past the end keep the last one.
+@export var sea_by_night: PackedFloat32Array = [0.4, 0.7, 1.0, 1.4, 1.8]
+## The sea builds up over the day: this much rougher by nightfall (0.25 = +25%).
+@export var sea_build_up: float = 0.25
+## How fast the sea changes toward that (strength per second), so it never jumps.
+@export var sea_change_speed: float = 0.1
+## Every drink the bar serves: now and then she tries one off her own list.
+@export var menu: Array[Recipe] = [
+	preload("res://props/recipes/beer.tres"),
+	preload("res://props/recipes/rum.tres"),
+	preload("res://props/recipes/cola.tres"),
+	preload("res://props/recipes/cuba_libre.tres"),
+	preload("res://props/recipes/motorina.tres"),
+	preload("res://props/recipes/prenadez.tres"),
+	preload("res://props/recipes/mangaliene.tres"),
+]
+## Chance she orders a drink that's new on the menu tonight (curious).
+@export_range(0.0, 1.0) var new_drink_chance: float = 0.35
+## Added to each customer's sometimes_chance every night.
+@export var sometimes_per_night: float = 0.05
+## Chance per night (night 3 = 3x) that she tries something not on her list.
+@export var try_other_per_night: float = 0.08
+## None of these chances go above this, so favorites still come up.
+@export_range(0.0, 1.0) var max_variety: float = 0.6
+
 @export_group("Judging")
 ## Ordered when a customer has no favorite (and on the first night).
 @export var default_recipe: Recipe = preload("res://props/recipes/beer.tres")
@@ -139,6 +166,8 @@ var _last_set := {}
 var _drunk := {}
 ## What the current customer ordered.
 var _order: Recipe
+## What each regular ordered last (keyed by CustomerData).
+var _last_order := {}
 ## Debug (U): every drink can be ordered from the first night.
 var _unlock_all := false
 
@@ -151,6 +180,7 @@ func _ready() -> void:
 	_coins.collected.connect(_money.fly_coin)
 	_music.finished.connect(_music.play) # placeholder track: just loop it
 	_tally.resize(Rating.size())
+	Sea.strength = _sea_tonight()
 	_spawn(_next_arriving(-1))
 
 func _process(delta: float) -> void:
@@ -158,6 +188,8 @@ func _process(delta: float) -> void:
 		return
 	_day_time += delta
 	var progress := _day_time / day_seconds
+	var sea := _sea_tonight() * (1.0 + sea_build_up * minf(progress, 1.0))
+	Sea.strength = move_toward(Sea.strength, sea, sea_change_speed * delta)
 	_clock.show_progress(progress)
 	# Dusk: the night sky slowly fades in over the day sky.
 	_night_sky.modulate.a = smoothstep(dusk_start, 1.0, progress)
@@ -307,18 +339,46 @@ func _pick_dialogue(data: CustomerData) -> PackedStringArray:
 	lines.append(order)
 	return lines
 
-## What she orders this visit: once she's drunk enough, mostly one of her
-## drunk orders; otherwise now and then one she sometimes has, else her
-## favorite. Only drinks unlocked by tonight; never the one she hates.
+## Tonight's sea strength, before it builds up over the day.
+func _sea_tonight() -> float:
+	if sea_by_night.is_empty():
+		return 1.0
+	return sea_by_night[mini(night, sea_by_night.size() - 1)]
+
+## What she orders this visit. Never the same odd drink twice in a row (her
+## favorite can repeat).
 func _pick_order(data: CustomerData) -> Recipe:
+	var order := _roll_order(data)
+	if order == _last_order.get(data) and order != _favorite(data):
+		order = _roll_order(data)
+	_last_order[data] = order
+	return order
+
+## Once she's drunk enough, mostly one of her drunk orders; otherwise maybe
+## whatever is new on the menu tonight, one she sometimes has, or (more often
+## every night) something else off the menu; else her favorite. Only drinks
+## unlocked by tonight; never the one she hates or ones she won't try.
+func _roll_order(data: CustomerData) -> Recipe:
 	var drunk: float = _drunk.get(data, 0.0)
 	var drunk_picks := _unlocked(data.drunk_orders, data)
 	if drunk >= data.drunk_from and not drunk_picks.is_empty() and randf() < 0.7:
 		return drunk_picks.pick_random()
-	var sometimes := _unlocked(data.sometimes, data)
-	if not sometimes.is_empty() and randf() < data.sometimes_chance:
-		return sometimes.pick_random()
 	var favorite := _favorite(data)
+	var others: Array[Recipe] = []
+	var fresh: Array[Recipe] = []
+	for recipe in _unlocked(menu, data):
+		if recipe != favorite and recipe not in data.wont_try:
+			others.append(recipe)
+			if recipe.unlock_night == night:
+				fresh.append(recipe)
+	if not fresh.is_empty() and randf() < new_drink_chance:
+		return fresh.pick_random()
+	var sometimes := _unlocked(data.sometimes, data)
+	var sometimes_chance := minf(data.sometimes_chance + sometimes_per_night * night, max_variety)
+	if not sometimes.is_empty() and randf() < sometimes_chance:
+		return sometimes.pick_random()
+	if not others.is_empty() and randf() < minf(try_other_per_night * night, max_variety):
+		return others.pick_random()
 	if _is_unlocked(favorite):
 		return favorite
 	return default_recipe

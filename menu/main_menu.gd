@@ -45,6 +45,7 @@ var _hop := 0.0
 var _hop_velocity := 0.0
 
 func _ready() -> void:
+	Sea.strength = 1.0 # back from a stormy night: a normal sea for the tug
 	_tug_scale = _tug_model.scale
 	_boing = AudioStreamPlayer.new()
 	_boing.stream = BOING_SOUND

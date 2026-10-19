@@ -5,6 +5,9 @@
 [ext_resource type="Resource" path="res://props/recipes/beer.tres" id="r_beer"]
 [ext_resource type="Resource" path="res://props/recipes/cola.tres" id="r_cola"]
 [ext_resource type="Resource" path="res://props/recipes/rum.tres" id="r_rum"]
+[ext_resource type="Resource" path="res://props/recipes/cuba_libre.tres" id="r_cuba_libre"]
+[ext_resource type="Resource" path="res://props/recipes/prenadez.tres" id="r_prenadez"]
+[ext_resource type="Resource" path="res://props/recipes/mangaliene.tres" id="r_mangaliene"]
 [ext_resource type="Texture2D" path="res://assets/chars/foid_placeholder3.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/chars/foid_placeholder3_mask.png" id="3"]
 
@@ -30,7 +33,8 @@ favorite = ExtResource("r_beer")
 sometimes = Array[ExtResource("r0")]([ExtResource("r_cola")])
 hated = ExtResource("r_rum")
 hated_line = "Rum?... Too... fast... sweetie..."
-order_lines = {"Cola": "Something... cold... a cola... sweetie..."}
+wont_try = Array[ExtResource("r0")]([ExtResource("r_cuba_libre"), ExtResource("r_prenadez"), ExtResource("r_mangaliene")])
+order_lines = {"Cola": "Something... cold... a cola... sweetie...", "Motorină": "A... Motorină... like the... boat... sweetie..."}
 wrong_drink_line = "This... isn't... what I... said..."
 other_happy_lines = PackedStringArray("Mmmm... a good... {drink}... worth the walk...")
 other_meh_lines = PackedStringArray("It's... an okay... {drink}... like Tuesday...")

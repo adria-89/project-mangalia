@@ -4,6 +4,7 @@ extends CanvasLayer
 ## from the bottom one after another (like paper cutouts on sticks) until the
 ## screen is all sea, the scene changes behind them, then they drop away again.
 ## Use change_scene() / reload_scene(), or cover() / uncover() around anything.
+## Any key, click or button skips it (a whole scene change at once).
 
 const WAVE_TEXTURE: Texture2D = preload("res://assets/bar/water_wave.png")
 ## Where the crest line sits inside the wave texture (px from its top).
@@ -26,6 +27,10 @@ const CREST_Y := 165.0
 var _rows: Array[Sprite2D] = []
 var _covered := false
 var _time := 0.0
+## The rows moving right now (null when still).
+var _tween: Tween
+## A press skipped this scene change: the reveal is skipped too.
+var _skipped := false
 
 func _ready() -> void:
 	layer = 100
@@ -58,6 +63,7 @@ func _process(delta: float) -> void:
 
 ## Fade out the current scene behind the waves, switch to another, reveal it.
 func change_scene(path: String) -> void:
+	_skipped = false
 	await cover()
 	get_tree().paused = false
 	get_tree().change_scene_to_file(path)
@@ -65,6 +71,7 @@ func change_scene(path: String) -> void:
 	await uncover()
 
 func reload_scene() -> void:
+	_skipped = false
 	await cover()
 	get_tree().paused = false
 	get_tree().reload_current_scene()
@@ -85,7 +92,7 @@ func cover() -> void:
 		row.position.y = _hidden_y()
 		tween.tween_property(row, "position:y", _covered_y(i), move_time) \
 			.set_delay(i * row_stagger).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	await tween.finished
+	await _play(tween)
 	_covered = true
 
 ## Rows drop away, furthest first, revealing whatever is behind.
@@ -97,7 +104,8 @@ func uncover() -> void:
 		var order := _rows.size() - 1 - i
 		tween.tween_property(_rows[i], "position:y", _hidden_y(), move_time) \
 			.set_delay(order * row_stagger).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-	await tween.finished
+	await _play(tween)
+	_skipped = false
 	for row in _rows:
 		row.visible = false
 	_covered = false
@@ -109,6 +117,23 @@ func _covered_y(row: int) -> float:
 func _hidden_y() -> float:
 	# Crest just below the screen (above the crest the texture is see-through).
 	return get_viewport().get_visible_rect().size.y + 20.0 - CREST_Y
+
+## Runs the rows' tween to the end, straight away if this change was skipped.
+func _play(tween: Tween) -> void:
+	_tween = tween
+	if _skipped:
+		tween.custom_step(1000.0)
+	if tween.is_running():
+		await tween.finished
+	_tween = null
+
+func _input(event: InputEvent) -> void:
+	if _tween == null or not event.is_pressed() or event.is_echo():
+		return
+	if event is InputEventKey or event is InputEventMouseButton or event is InputEventJoypadButton:
+		_skipped = true
+		_tween.custom_step(1000.0)
+		get_viewport().set_input_as_handled() # don't click what's under the waves
 
 ## Give the new scene a couple of frames to build before revealing it.
 func _settle() -> void:

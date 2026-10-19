@@ -5,12 +5,12 @@
 [ext_resource type="PackedScene" uid="uid://cxd2y1cm5vi87" path="res://menu/tugboat.tscn" id="3"]
 [ext_resource type="Texture2D" uid="uid://g5ikeleafe8m" path="res://assets/bar/water_wave.png" id="4"]
 [ext_resource type="Script" uid="uid://c6hpex17dlg34" path="res://scenery/wave_layers.gd" id="5"]
-[ext_resource type="Texture2D" uid="uid://drt0wnrsvjbs5" path="res://assets/menu/title_placeholder.png" id="6"]
 [ext_resource type="Texture2D" uid="uid://dpj6vc1aw1o6l" path="res://assets/ui/ui_scroll.png" id="7"]
 [ext_resource type="Script" uid="uid://dyoeeqoyslibb" path="res://menu/scroll_button.gd" id="8"]
 [ext_resource type="FontFile" uid="uid://4bfw6655c2wh" path="res://assets/ui/alagard.ttf" id="9"]
 [ext_resource type="PackedScene" path="res://menu/scroll_button.tscn" id="10"]
 [ext_resource type="PackedScene" path="res://menu/scroll_menu.tscn" id="11"]
+[ext_resource type="Script" path="res://menu/title_logo.gd" id="12"]
 
 [sub_resource type="PanoramaSkyMaterial" id="SkyMat"]
 panorama = ExtResource("2")
@@ -66,6 +66,7 @@ transform = Transform3D(1, 0, 0, 0, 0.9986295, 0.05233596, 0, -0.05233596, 0.998
 fov = 40.0
 
 [node name="TugPivot" type="Node3D" parent="ShipViewport" unique_id=644949748]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 
 [node name="Tugboat" parent="ShipViewport/TugPivot" unique_id=1756351008 instance=ExtResource("3")]
 transform = Transform3D(0.9781476, 0, -0.2079117, 0, 1, 0, 0.2079117, 0, 0.9781476, 0, 0, 0)
@@ -76,10 +77,11 @@ centered = false
 
 [node name="BackWaves" type="Sprite2D" parent="." unique_id=1642602225]
 modulate = Color(0.85, 0.9, 0.95, 1)
-position = Vector2(0, 70)
+position = Vector2(0, 100)
 texture = ExtResource("4")
 centered = false
 script = ExtResource("5")
+layer_count = 6
 layer_spacing = 10.0
 back_brightness = 0.6
 sway_px = 8.0
@@ -89,7 +91,7 @@ speed = 1.2
 centered = false
 
 [node name="FrontWaves" type="Sprite2D" parent="." unique_id=1765332706]
-position = Vector2(0, 112)
+position = Vector2(0, 142)
 texture = ExtResource("4")
 centered = false
 script = ExtResource("5")
@@ -99,11 +101,9 @@ sway_px = 12.0
 bob_px = 3.5
 speed = 1.5
 
-[node name="Title" type="Sprite2D" parent="." unique_id=1272817611]
-texture_filter = 2
-position = Vector2(382.00003, 90.99999)
-scale = Vector2(0.19589928, 0.21781492)
-texture = ExtResource("6")
+[node name="Title" type="Node2D" parent="." unique_id=1272817611]
+position = Vector2(378, 70)
+script = ExtResource("12")
 
 [node name="Buttons" type="Node2D" parent="." unique_id=1438197477]
 

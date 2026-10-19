@@ -9,6 +9,8 @@
 [ext_resource type="Resource" path="res://props/recipes/cola.tres" id="r_cola"]
 [ext_resource type="Resource" path="res://props/recipes/cuba_libre.tres" id="r_cuba_libre"]
 [ext_resource type="Resource" path="res://props/recipes/rum.tres" id="r_rum"]
+[ext_resource type="Resource" path="res://props/recipes/prenadez.tres" id="r_prenadez"]
+[ext_resource type="Resource" path="res://props/recipes/mangaliene.tres" id="r_mangaliene"]
 
 [sub_resource type="Resource" id="Set_returned"]
 script = ExtResource("4")
@@ -53,8 +55,11 @@ favorite = ExtResource("r_cola")
 sometimes = Array[ExtResource("r0")]([ExtResource("r_cuba_libre")])
 hated = ExtResource("r_rum")
 hated_line = "R-RUM?! It smells like a church! Take it away!"
+wont_try = Array[ExtResource("r0")]([ExtResource("r_prenadez"), ExtResource("r_mangaliene")])
 order_lines = {
-"Cuba Libre": "A C-Cuba Libre, please! I'm feeling... brave tonight."
+"Cuba Libre": "A C-Cuba Libre, please! I'm feeling... brave tonight.",
+"Beer": "M-maybe a beer? Everyone says it's very... um. Mortal.",
+"Motorină": "A Motorină, please? The lizard says it's fuel. D-do demons need fuel?"
 }
 other_happy_lines = PackedStringArray("Ooh, a really g-good {drink}! Thank you!")
 other_meh_lines = PackedStringArray("It\'s a... nice {drink}. Thank you!")

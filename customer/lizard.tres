@@ -59,7 +59,9 @@ hated_line = "Cola?? Do I look like a CHILD to you?"
 order_lines = {
 "Mangaliene": "MANGALIENE! All three! In layers! Like a cake!",
 "Motorină": "A Motorină! Fuel me up, captain!",
-"Prenadez": "Ooh, the fancy one! A Prenadez! With the floaty rum!"
+"Prenadez": "Ooh, the fancy one! A Prenadez! With the floaty rum!",
+"Rum": "A shot of rum! For courage! I need it for... no reason!",
+"Cuba Libre": "Cuba Libre! I'm an international lizard now!"
 }
 other_happy_lines = PackedStringArray("OHHH. A {drink}! That\'s the stuff. You\'re hired. By me.", "Beautiful {drink}. I\'m crying. It\'s the {drink}.")
 other_meh_lines = PackedStringArray("Bit sad for a {drink}, but I\'ll drink anything.")

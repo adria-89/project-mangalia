@@ -1,0 +1,47 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://splash/splash.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/splash/prenadez_logo.png" id="2"]
+[ext_resource type="Shader" path="res://shaders/splash_pour.gdshader" id="3"]
+[ext_resource type="AudioStream" path="res://audio/splash_jingle.wav" id="4"]
+[ext_resource type="AudioStream" path="res://audio/beer_pour.wav" id="5"]
+[ext_resource type="AudioStream" path="res://audio/bump.wav" id="6"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pour"]
+shader = ExtResource("3")
+
+[node name="Splash" type="Node2D"]
+script = ExtResource("1")
+
+[node name="Wall" type="ColorRect" parent="."]
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 560.0
+offset_bottom = 420.0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Logo" type="Sprite2D" parent="."]
+texture_filter = 2
+material = SubResource("ShaderMaterial_pour")
+texture = ExtResource("2")
+
+[node name="LightsOut" type="ColorRect" parent="."]
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 560.0
+offset_bottom = 420.0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Jingle" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4")
+bus = &"Music"
+
+[node name="Pour" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5")
+
+[node name="Thud" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("6")
+
+[node name="Hiccup" type="AudioStreamPlayer" parent="."]

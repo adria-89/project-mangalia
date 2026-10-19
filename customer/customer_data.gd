@@ -47,6 +47,9 @@ extends Resource
 ## Never orders it; served it anyway, she's furious (hated_line).
 @export var hated: Recipe
 @export var hated_line: String = "I would NEVER drink this."
+## Drinks she won't pick when trying something new (but will drink if they're
+## on her own lists above).
+@export var wont_try: Array[Recipe] = []
 ## What she says ordering something other than her favorite, by recipe name
 ## (e.g. "Motorină": "Fuel me up!"). Missing ones use the recipe's own line.
 @export var order_lines: Dictionary = {}
