@@ -12,9 +12,9 @@ config_version=5
 
 config/name="Mangaliene."
 run/main_scene="res://splash/splash.tscn"
-boot_splash/show_image=false
-boot_splash/bg_color=Color(0, 0, 0, 1)
 config/features=PackedStringArray("4.7", "Forward Plus")
+boot_splash/bg_color=Color(0, 0, 0, 1)
+boot_splash/show_image=false
 config/icon="res://assets/icon/icon_256.png"
 config/windows_native_icon="res://assets/icon/icon.ico"
 
@@ -23,6 +23,7 @@ config/windows_native_icon="res://assets/icon/icon.ico"
 Settings="*res://autoloads/settings.gd"
 Sea="*res://autoloads/sea.gd"
 Transition="*res://autoloads/transition.gd"
+Debug="*res://autoloads/debug.gd"
 
 [display]
 

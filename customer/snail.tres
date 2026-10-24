@@ -15,6 +15,7 @@
 script = ExtResource("1")
 display_name = "Snail"
 texture = ExtResource("2")
+placeholder = true
 mask = ExtResource("3")
 lines = PackedStringArray("Heyyy... sweetie...", "I've been walking here... since Tuesday.", "Something cold. Something... slow.", "No rush. I have all week. Literally.")
 voice_pitch = 0.65

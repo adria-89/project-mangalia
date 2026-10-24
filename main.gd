@@ -14,8 +14,7 @@ extends Node2D
 ##
 ## Controls: drag the tankard, hover the left edge for the tap, click a
 ## customer to poke her, click elsewhere / Space to advance dialogue,
-## 1 / 2 to call a specific customer, N to skip to the end of the day,
-## U to unlock every drink (debug), R to restart.
+## F1 for the debug overlay and its keys (autoloads/debug.gd).
 
 const CUSTOMER_SCENE: PackedScene = preload("res://customer/customer.tscn")
 
@@ -47,7 +46,9 @@ const DRINK_STYLES := {
 	preload("res://customer/strigoi.tres"),
 ]
 ## Which of the customers above walk in on their own (the names must follow
-## the list order). The 1 / 2 / 3 keys can still call anyone. None ticked = all.
+## the list order). The 1 / 2 / 3 debug keys can still call anyone. None
+## ticked = all. Ones still on placeholder art (CustomerData.placeholder) only
+## walk in with the debug P toggle, ticked or not.
 @export_flags("Lizard", "Cat", "Strigoi") var arriving: int = 1
 @export var enter_x: float = -140.0
 ## Real seconds the clock takes to go from the start of the day to night.
@@ -99,6 +100,9 @@ const DRINK_STYLES := {
 @export var messy_spill: float = 0.25
 ## How far (3D units, sideways) from her the drink may land and still count as served.
 @export var serve_reach: float = 0.5
+## Seconds a drink must sit in front of her before she takes it: pick it back
+## up in time to change your mind.
+@export var serve_delay: float = 0.6
 ## How far the mix may be off the recipe (0..1, see Recipe.difference)
 ## before it costs a mood step, and before it's the wrong drink altogether.
 @export var close_mix: float = 0.15
@@ -145,6 +149,9 @@ var _customer: Node2D
 var _next_index := 0
 var _phase := Phase.ARRIVING
 var _served_item: Node3D
+## Set down in front of her, taken once _serve_left runs out (see serve_delay).
+var _pending_serve: Node3D
+var _serve_left := 0.0
 var _mood := Mood.MEH
 var _rating := Rating.MEH
 ## How many drinks got each rating today (indexed by Rating).
@@ -168,8 +175,6 @@ var _drunk := {}
 var _order: Recipe
 ## What each regular ordered last (keyed by CustomerData).
 var _last_order := {}
-## Debug (U): every drink can be ordered from the first night.
-var _unlock_all := false
 
 func _ready() -> void:
 	_bubble.line_started.connect(_on_line_started)
@@ -181,14 +186,18 @@ func _ready() -> void:
 	_music.finished.connect(_music.play) # placeholder track: just loop it
 	_tally.resize(Rating.size())
 	Sea.strength = _sea_tonight()
+	Debug.info = _debug_info
 	_spawn(_next_arriving(-1))
 
 func _process(delta: float) -> void:
+	_update_pending_serve(delta)
 	if not _day_running:
 		return
 	_day_time += delta
 	var progress := _day_time / day_seconds
 	var sea := _sea_tonight() * (1.0 + sea_build_up * minf(progress, 1.0))
+	if Debug.sea >= 0.0:
+		sea = Debug.sea
 	Sea.strength = move_toward(Sea.strength, sea, sea_change_speed * delta)
 	_clock.show_progress(progress)
 	# Dusk: the night sky slowly fades in over the day sky.
@@ -277,6 +286,7 @@ func _spawn(index: int) -> void:
 		_props.lower_from_drink(_served_item) # if she was mid-drink
 		_props.set_locked(_served_item, false)
 	_served_item = null
+	_pending_serve = null
 	_drink_done = true
 	if is_instance_valid(_customer):
 		_customer.queue_free()
@@ -298,7 +308,10 @@ func _spawn(index: int) -> void:
 func _next_arriving(index: int) -> int:
 	for i in range(1, customers.size() + 1):
 		var next := posmod(index + i, customers.size())
-		if arriving == 0 or arriving & (1 << next):
+		if customers[next].placeholder:
+			if Debug.placeholders:
+				return next
+		elif arriving == 0 or arriving & (1 << next):
 			return next
 	return posmod(index + 1, customers.size())
 
@@ -387,7 +400,7 @@ func _favorite(data: CustomerData) -> Recipe:
 	return data.favorite if data.favorite != null else default_recipe
 
 func _is_unlocked(recipe: Recipe) -> bool:
-	return _unlock_all or recipe.unlock_night <= night
+	return Debug.unlock_all or recipe.unlock_night <= night
 
 func _unlocked(recipes: Array[Recipe], data: CustomerData) -> Array[Recipe]:
 	var result: Array[Recipe] = []
@@ -411,7 +424,24 @@ func _on_last_line_shown() -> void:
 func _on_item_settled(item: Node3D) -> void:
 	if _phase != Phase.WAITING or _props.liquid_of(item) == null:
 		return
-	if _in_front_of_customer(item):
+	# Only what you set down yourself: not a glass the sea slid over to her.
+	if _props.placed_by_hand(item) and _in_front_of_customer(item):
+		_pending_serve = item
+		_serve_left = serve_delay
+
+## She takes the drink once it's sat in front of her for serve_delay, unless
+## it was picked back up or the sea moved it off meanwhile.
+func _update_pending_serve(delta: float) -> void:
+	if _pending_serve == null:
+		return
+	var item := _pending_serve
+	if _phase != Phase.WAITING or _props.is_held(item) or not _props.placed_by_hand(item) \
+			or not _in_front_of_customer(item):
+		_pending_serve = null
+		return
+	_serve_left -= delta
+	if _serve_left <= 0.0:
+		_pending_serve = null
 		_serve(item)
 
 ## A tankard fell off the end of the counter and smashed: a jolt of the view
@@ -436,6 +466,11 @@ func _serve(item: Node3D) -> void:
 	var data: CustomerData = _customer.data
 	var order := _order if _order != null else default_recipe
 	var line := _judge(liquid, order, data)
+	var forced := Debug.force_perfect
+	if forced:
+		Debug.force_perfect = false
+		_mood = Mood.HAPPY
+		line = (Array(data.happy_lines).pick_random() as String).format({"drink": order.name})
 	_bubble.stop()
 	_bubble.start(PackedStringArray([line]), data.voice_pitch, data.text_speed)
 	_customer.react(_mood)
@@ -443,7 +478,7 @@ func _serve(item: Node3D) -> void:
 		_customer.nervous()
 	var mix: float = order.difference(liquid.composition())
 	var layers := _layer_quality(liquid, order) if order.layered else 1.0
-	var perfect: bool = _mood == Mood.HAPPY and liquid.fill >= perfect_fill * order.fill \
+	var perfect: bool = forced or _mood == Mood.HAPPY and liquid.fill >= perfect_fill * order.fill \
 		and liquid.spilled_total <= perfect_spill and mix <= perfect_mix and layers >= perfect_layers
 	print("Served %s: fill %.3f (need >= %.2f), spilled %.3f (need <= %.2f), mix off %.2f, layers %.2f -> perfect: %s" \
 		% [order.name, liquid.fill, perfect_fill * order.fill, liquid.spilled_total, perfect_spill, mix, layers, perfect])
@@ -687,22 +722,66 @@ func _unhandled_input(event: InputEvent) -> void:
 			_bubble.advance()
 	elif event.is_action_pressed("ui_accept"):
 		_bubble.advance()
-	elif event is InputEventKey and event.pressed and not event.echo:
-		match event.keycode:
-			KEY_1:
-				_spawn(0)
-			KEY_2:
-				_spawn(1)
-			KEY_3:
-				_spawn(2)
-			KEY_H:
-				if is_instance_valid(_customer):
-					_customer.drunk += 1.0
-					_customer.hiccup()
-			KEY_N:
-				_day_time = day_seconds
-			KEY_U:
-				_unlock_all = not _unlock_all
-				print("Every drink unlocked: ", _unlock_all)
-			KEY_R:
-				Transition.reload_scene()
+	elif Debug.key(event):
+		_debug_key(event.keycode)
+
+## The debug keys, only while the F1 overlay is up (see Debug.KEYS).
+func _debug_key(keycode: Key) -> void:
+	match keycode:
+		KEY_1, KEY_2, KEY_3:
+			var index: int = keycode - KEY_1
+			if index < customers.size():
+				_spawn(index)
+				Debug.note("Called " + customers[index].display_name)
+		KEY_P:
+			Debug.placeholders = not Debug.placeholders
+			Debug.note("Placeholder customers walk in: %s" % _on_off(Debug.placeholders))
+			if is_instance_valid(_customer):
+				_next_index = _next_arriving(customers.find(_customer.data))
+		KEY_H:
+			if is_instance_valid(_customer):
+				_customer.drunk += 1.0
+				_customer.hiccup()
+				Debug.note("%s drunk: %.1f" % [_customer.data.display_name, _customer.drunk])
+		KEY_K:
+			Debug.force_perfect = not Debug.force_perfect
+			Debug.note("Next drink perfect: %s" % _on_off(Debug.force_perfect))
+		KEY_U:
+			Debug.unlock_all = not Debug.unlock_all
+			Debug.note("Every drink unlocked: %s" % _on_off(Debug.unlock_all))
+		KEY_S:
+			# auto -> 0 -> 1 -> 2 -> auto
+			Debug.sea = -1.0 if Debug.sea >= 2.0 else Debug.sea + 1.0 if Debug.sea >= 0.0 else 0.0
+			Debug.note("Sea: " + ("auto" if Debug.sea < 0.0 else "%.0f" % Debug.sea))
+		KEY_M:
+			_money.set_money(_money.money + 20)
+			Debug.note("+20 lei")
+		KEY_BRACKETLEFT, KEY_BRACKETRIGHT:
+			night = maxi(night + (1 if keycode == KEY_BRACKETRIGHT else -1), 0)
+			Debug.note("Night %d" % night)
+		KEY_N:
+			_day_time = day_seconds
+			Debug.note("Day ended")
+		KEY_R:
+			Transition.reload_scene()
+
+func _on_off(on: bool) -> String:
+	return "ON" if on else "off"
+
+## What the F1 overlay shows about the bar.
+func _debug_info() -> String:
+	var text := "Night %d   %d%% of the day   %d lei
+" % [night, int(100.0 * _day_time / day_seconds), _money.money]
+	text += "Sea %.2f (%s)
+" % [Sea.strength, "auto" if Debug.sea < 0.0 else "fixed"]
+	if is_instance_valid(_customer):
+		text += "%s: %s, drunk %.1f
+" % [_customer.data.display_name,
+			Phase.keys()[_phase].to_lower(), _customer.drunk]
+		text += "Order: %s
+" % (_order.name if _order != null else "-")
+	text += "Next: %s
+" % customers[_next_index].display_name
+	text += "Placeholders %s  Unlock %s  Perfect %s" % [
+		_on_off(Debug.placeholders), _on_off(Debug.unlock_all), _on_off(Debug.force_perfect)]
+	return text

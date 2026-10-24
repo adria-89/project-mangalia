@@ -35,6 +35,7 @@ order_line = "Beer. Full. Pour it nicely. For once."
 script = ExtResource("1")
 display_name = "Cat"
 texture = ExtResource("2")
+placeholder = true
 mask = ExtResource("3")
 eyes_mask = ExtResource("5")
 mouth = Vector2(122, 112)
@@ -50,11 +51,11 @@ sometimes = Array[ExtResource("r0")]([ExtResource("r_rum"), ExtResource("r_cuba_
 hated = ExtResource("r_motorina")
 hated_line = "Motorină. Do I look like a tugboat to you."
 order_lines = {
-"Cuba Libre": "Cuba Libre. Mixed. It's not a science project.",
-"Rum": "Rum. A shot. Don't drown it.",
 "Cola": "Cola. Don't look at me like that.",
+"Cuba Libre": "Cuba Libre. Mixed. It's not a science project.",
+"Mangaliene": "Mangaliene. Three layers. Impress me. You won't.",
 "Prenadez": "Prenadez. Rum on top. If it sinks, so do you.",
-"Mangaliene": "Mangaliene. Three layers. Impress me. You won't."
+"Rum": "Rum. A shot. Don't drown it."
 }
 other_happy_lines = PackedStringArray("...Fine. That\'s an acceptable {drink}.")
 other_meh_lines = PackedStringArray("I\'ve had worse {drink}s. At funerals.")

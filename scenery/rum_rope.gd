@@ -238,7 +238,6 @@ func _add_slot(spot: Vector3) -> void:
 	var bottle: Bottle = bottle_scene.instantiate()
 	_bottles.add_child(bottle)
 	var lines: Array[Line2D] = [_rope_line(cord_width)]
-	# The knot round its neck, over the glass (placed in _update_cords).
 	if _knot_texture == null:
 		_knot_texture = _make_knot_texture()
 	var knot := Sprite2D.new()

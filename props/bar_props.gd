@@ -107,6 +107,9 @@ var _friction := 2.0
 var _slide_velocity := Vector3.ZERO
 ## Props that can't be picked up right now (e.g. someone is drinking from it).
 var _locked := {}
+## Props the player set down (or flicked) where they are now. The sea, a
+## customer's shove or a respawn moving one takes it out (see placed_by_hand()).
+var _by_hand := {}
 ## The active prop is raised to someone's mouth (see raise_to_drink()).
 var _drinking := false
 var _drink_height := 0.0
@@ -164,6 +167,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		elif _holding:
 			_holding = false
+			_by_hand[_active] = true
 			_target = _flat
 			var snapped := false
 			if snap_point != null:
@@ -338,6 +342,7 @@ func push(item: Node3D, velocity: Vector3, friction: float = -1.0) -> void:
 	_slide_velocity = Vector3(velocity.x, 0.0, 0.0)
 	_tilt_velocity += Vector2(randf_range(-1.5, 1.5), randf_range(-1.5, 1.5))
 	_landed_reported = true
+	_by_hand.erase(item)
 
 ## Someone drinks from a prop: it rises so its opening reaches mouth_screen
 ## (a screen position) and tips toward her. Returns false if it's busy (held).
@@ -359,6 +364,7 @@ func raise_to_drink(item: Node3D, mouth_screen: Vector2) -> bool:
 	_drink_peak = _drink_height
 	_target = Vector3(clampf(origin.x, counter_min.x, counter_max.x), 0.0, item.position.z)
 	_landed_reported = true
+	_by_hand.erase(item) # her empty, wherever it ends up
 	liquid.drinking = true
 	return true
 
@@ -406,6 +412,7 @@ func _start_drifting() -> void:
 		_friction = drift_friction
 		_slide_velocity = Vector3.ZERO
 		_landed_reported = true
+		_by_hand.erase(item)
 		return
 
 ## Sideways pull on the active prop from the ship's lean (none while someone drinks from it).
@@ -419,6 +426,7 @@ func _update_slide(delta: float) -> void:
 	var pull := _drift_pull()
 	if absf(pull) > static_friction:
 		_slide_velocity.x += pull * delta
+		_by_hand.erase(_active) # the sea is steering it now, not the flick
 	_flat += _slide_velocity * delta
 	_slide_velocity *= exp(-_friction * delta)
 	if _flat.x < counter_min.x or _flat.x > counter_max.x:
@@ -487,6 +495,7 @@ func _respawn() -> void:
 		return # something else is moving: try again next frame
 	_broken = null
 	_locked.erase(item)
+	_by_hand.erase(item)
 	var rest: Dictionary = _rest[item]
 	rest.yaw = randf_range(-0.5, 0.5)
 	_activate(item)
@@ -584,6 +593,7 @@ func reset_props() -> void:
 	_falling = false
 	_broken = null
 	_locked.clear()
+	_by_hand.clear()
 	for item: Node3D in _items.get_children():
 		item.visible = true
 		var rest: Dictionary = _rest[item]
@@ -600,6 +610,14 @@ func is_sliding(item: Node3D) -> bool:
 
 func is_holding() -> bool:
 	return _holding
+
+## Is the player holding this prop right now?
+func is_held(item: Node3D) -> bool:
+	return item == _active and _holding
+
+## Did the player put this prop where it is (not the sea or a customer)?
+func placed_by_hand(item: Node3D) -> bool:
+	return _by_hand.has(item)
 
 ## The drink inside a prop, if it holds one.
 func liquid_of(item: Node3D) -> Node:

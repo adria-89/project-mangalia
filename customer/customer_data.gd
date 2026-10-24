@@ -15,6 +15,9 @@ extends Resource
 ## Where her mouth is on the texture (pixels from the top-left): the tankard
 ## is raised to here when she drinks.
 @export var mouth := Vector2(100, 110)
+## Still on placeholder art: only walks in on her own with the debug
+## placeholders toggle on (F1, then P).
+@export var placeholder := false
 ## Small talk before ordering, on her first visit.
 @export var lines: PackedStringArray = []
 ## Talk for later visits: each is its own small talk + order. They're used in

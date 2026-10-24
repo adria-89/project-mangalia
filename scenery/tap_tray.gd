@@ -40,7 +40,7 @@ const SPOUT := Vector2(75, 96)
 const PIVOT := Vector2(0, 60)
 const TAP_RECT := Rect2(0, 0, 90, 98)
 
-## Debug: T switches what the tap pours, to try layers without the bottles.
+## Debug (F1, then T): switches what the tap pours, to try layers without the bottles.
 const DEBUG_DRINKS: Array[Drink] = [
 	preload("res://props/drinks/beer.tres"),
 	preload("res://props/drinks/cola.tres"),
@@ -149,9 +149,9 @@ func _input(event: InputEvent) -> void:
 		_mouse = get_parent().to_local(event.position)
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_T:
+	if Debug.key(event) and event.keycode == KEY_T:
 		drink = DEBUG_DRINKS[(DEBUG_DRINKS.find(drink) + 1) % DEBUG_DRINKS.size()]
-		print("Tap pours: ", drink.name)
+		Debug.note("Tap pours: " + drink.name)
 		return
 	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT):
 		return
