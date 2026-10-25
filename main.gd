@@ -764,6 +764,11 @@ func _debug_key(keycode: Key) -> void:
 			Debug.note("Day ended")
 		KEY_R:
 			Transition.reload_scene()
+		KEY_A:
+			var shift := Input.is_key_pressed(KEY_SHIFT)
+			AfterHoursScene.next_girl = load("res://customer/strigoi.tres" if shift else "res://customer/lizard.tres")
+			Debug.note("After hours: " + ("Striggy" if shift else "Lizard"))
+			Transition.change_scene("res://afterhours/afterhours.tscn")
 
 func _on_off(on: bool) -> String:
 	return "ON" if on else "off"

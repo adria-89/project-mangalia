@@ -5,11 +5,70 @@
 [ext_resource type="Texture2D" uid="uid://cdihx1okpmuyc" path="res://assets/chars/foid_placeholder2_mask.png" id="3"]
 [ext_resource type="Script" uid="uid://dbc5py7jp16ic" path="res://customer/dialogue_set.gd" id="4"]
 [ext_resource type="Texture2D" uid="uid://djseeaqdbhnx7" path="res://assets/chars/foid_placeholder2_mask_eyes.png" id="5"]
+[ext_resource type="Script" uid="uid://d07ss36memggp" path="res://afterhours/afterhours_girl.gd" id="after_hours_script"]
 [ext_resource type="Script" uid="uid://cov1cib5bp6gu" path="res://props/recipe.gd" id="r0"]
 [ext_resource type="Resource" path="res://props/recipes/beer.tres" id="r_beer"]
 [ext_resource type="Resource" path="res://props/recipes/cuba_libre.tres" id="r_cuba_libre"]
 [ext_resource type="Resource" uid="uid://clrcg8wpa1qhx" path="res://props/recipes/motorina.tres" id="r_motorina"]
 [ext_resource type="Resource" path="res://props/recipes/rum.tres" id="r_rum"]
+
+[sub_resource type="Gradient" id="AfterHours_flesh"]
+offsets = PackedFloat32Array(0, 0.35, 0.7, 1)
+colors = PackedColorArray(0.235, 0.059, 0.118, 1, 0.549, 0.196, 0.314, 1, 0.843, 0.451, 0.549, 1, 0.961, 0.706, 0.765, 1)
+
+[sub_resource type="Gradient" id="AfterHours_skin"]
+offsets = PackedFloat32Array(0, 0.3, 0.74615383, 1)
+colors = PackedColorArray(0.157, 0.055, 0.086, 1, 0.345, 0.129, 0.176, 1, 0.51, 0.216, 0.267, 1, 0.6117647, 0.3372549, 0.42352942, 1)
+
+[sub_resource type="Resource" id="AfterHours"]
+script = ExtResource("after_hours_script")
+skin_ramp = SubResource("AfterHours_skin")
+flesh_ramp = SubResource("AfterHours_flesh")
+skin_detail = 32
+pussy_type = 4
+tail_type = 9
+tail_scale = 1.205
+butt_stiffness = 140.0
+butt_damping = 9.0
+butt_size = Vector2(0.92, 0.9)
+legs_size = Vector2(0.75, 0.95)
+leg_angle = 10.0
+over = 16
+pace = PackedFloat32Array(0.7, 1, 1.4, 1.8)
+anal_yes_comfort = 0.7
+anal_yes_arousal = 0.5
+likes_deep = 0.6
+wants_inside = false
+lines = Dictionary[String, PackedStringArray]({
+"after": PackedStringArray("Not bad. Don\'t tell the walrus.", "Same time tomorrow. Not a date."),
+"all_in": PackedStringArray("ALL of it? ...Show-off."),
+"angry_stop": PackedStringArray("That\'s it. Out of my cabin.", "Nope. Night\'s over."),
+"ask_no": PackedStringArray("No. Earn it.", "Not tonight. Maybe. No."),
+"ask_yes": PackedStringArray("...Fine. Once. Never mention it.", "Hmph. Carefully."),
+"deep": PackedStringArray("...Mrrh. There. Stay.", "Deep. ...Don\'t stop."),
+"edge": PackedStringArray("Don\'t you dare... Decide. Now."),
+"forced": PackedStringArray("Stop. That hurts. Get off.", "I said NO. You\'re dead."),
+"good": PackedStringArray("...Fine. Good.", "Hm. You\'ve practiced."),
+"her_cum": PackedStringArray("Hnnh-! ...You saw nothing.", "Mrrrow-! ...Shut up. Shut UP."),
+"insert": PackedStringArray("...Hn.", "Took you long enough."),
+"inside": PackedStringArray("Inside?! Seriously? ...Ugh. You\'re cleaning that.", "Hhh. Of course you did."),
+"left_early": PackedStringArray("Leaving? Coward.", "Hah. Typical."),
+"not_yet": PackedStringArray("That\'s it? I wasn\'t done.", "Already? ...Pathetic. Again later."),
+"outside": PackedStringArray("Good. Smart. ...Thanks.", "On my fur. Fine. ...It\'s fine."),
+"pushed": PackedStringArray("I said no. We\'re done."),
+"respected": PackedStringArray("...You listened. Weird. Keep going."),
+"slap": PackedStringArray("Hnn-!", "Tch. Watch it."),
+"slap_red": PackedStringArray("My tail\'s NOT wagging."),
+"slip": PackedStringArray("You fell out. Typical.", "Get back in. Quietly."),
+"stage_1": PackedStringArray("...That\'s acceptable.", "Don\'t let it go to your head."),
+"stage_2": PackedStringArray("Keep... doing that. And shut up.", "I\'m not purring. That\'s the engine."),
+"stage_3": PackedStringArray("Don\'t. Stop. I\'ll scratch you.", "Faster. That\'s an order, deckhand."),
+"start": PackedStringArray("Fine. Door\'s locked. Don\'t make it weird.", "One shot, sailor. Like the pool table."),
+"too_deep": PackedStringArray("Easy. There\'s a bottom, you know."),
+"too_fast": PackedStringArray("Easy. You\'re not scrubbing a deck.", "Slow down. I said slow."),
+"too_slow": PackedStringArray("Napping? I\'m the cat here.", "Barnacles move faster than you."),
+"wrong_hole": PackedStringArray("Wrong port, sailor.", "Ask first. Or don\'t. Actually, don\'t.")
+})
 
 [sub_resource type="Resource" id="Set_again"]
 script = ExtResource("4")
@@ -35,10 +94,10 @@ order_line = "Beer. Full. Pour it nicely. For once."
 script = ExtResource("1")
 display_name = "Cat"
 texture = ExtResource("2")
-placeholder = true
 mask = ExtResource("3")
 eyes_mask = ExtResource("5")
 mouth = Vector2(122, 112)
+placeholder = true
 lines = PackedStringArray("Where\'s the walrus.", "Don\'t smile at me. I can hear you smiling.", "...Fine. Once. Then stop.", "Rum. In a clean glass. If you have one.", "You don\'t have one, do you.")
 extra_sets = Array[ExtResource("4")]([SubResource("Set_again"), SubResource("Set_club"), SubResource("Set_pig"), SubResource("Set_neighbor")])
 order_line = "Beer. Full. Don't make me ask twice."
@@ -67,3 +126,4 @@ jiggle_stiffness = 190.0
 jiggle_damping = 8.0
 jiggle_inertia = 0.8
 jiggle_max = 5.0
+after_hours = SubResource("AfterHours")

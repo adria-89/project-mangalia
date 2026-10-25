@@ -1,0 +1,226 @@
+[gd_scene format=3 uid="uid://cg6muka4ip7al"]
+
+[ext_resource type="Script" uid="uid://bh7yq66e04ygx" path="res://afterhours/afterhours.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://blrmhs1v4e4hf" path="res://assets/placeholder/afterhours/cabin_bg.png" id="2"]
+[ext_resource type="Script" uid="uid://djs0uc51pk450" path="res://afterhours/body_rig.gd" id="3"]
+[ext_resource type="Texture2D" uid="uid://dovpnkhw1kkef" path="res://assets/ui/particle_drip.png" id="5"]
+[ext_resource type="Script" uid="uid://buho3q2k7ndn2" path="res://afterhours/porthole_cam.gd" id="6"]
+[ext_resource type="Script" uid="uid://bkjntsq0770as" path="res://afterhours/heart_beat.gd" id="8"]
+[ext_resource type="Texture2D" uid="uid://dyr2lah5aumk8" path="res://assets/ui/heart.png" id="9"]
+[ext_resource type="PackedScene" path="res://ui/speech_bubble.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://ui/kiss_layer.tscn" id="11"]
+[ext_resource type="FontFile" uid="uid://4bfw6655c2wh" path="res://assets/ui/alagard.ttf" id="12"]
+[ext_resource type="PackedScene" path="res://menu/scroll_button.tscn" id="13"]
+[ext_resource type="AudioStream" uid="uid://ligehjxr5uhk" path="res://audio/dialogue_tick.wav" id="14"]
+[ext_resource type="Script" uid="uid://dxw74ubpc5gav" path="res://afterhours/meter_bar.gd" id="15"]
+[ext_resource type="Script" uid="uid://dwgw2mt3si0up" path="res://afterhours/pace_gauge.gd" id="16"]
+[ext_resource type="Script" uid="uid://b2hc66o4ahqlm" path="res://afterhours/sweat_drops.gd" id="17"]
+[ext_resource type="Texture2D" uid="uid://dtnjx8v8t5uot" path="res://assets/placeholder/afterhours/sweat_1.png" id="18"]
+[ext_resource type="Texture2D" uid="uid://7ymultww6sux" path="res://assets/placeholder/afterhours/sweat_2.png" id="19"]
+[ext_resource type="AudioStream" uid="uid://wm5hyecf4rb6" path="res://audio/music/this_song_was_used_in_tf2.wav" id="20"]
+[ext_resource type="PackedScene" path="res://menu/scroll_menu.tscn" id="21"]
+[ext_resource type="PackedScene" path="res://afterhours/fx/sparks.tscn" id="22"]
+[ext_resource type="Script" uid="uid://bn8cmqe4b5wre" path="res://afterhours/violin_bow.gd" id="23"]
+[ext_resource type="AudioStream" uid="uid://dydu5k5opusts" path="res://audio/violin1.wav" id="24"]
+[ext_resource type="AudioStream" uid="uid://bxvwjxyfchbv0" path="res://audio/violin2.wav" id="25"]
+[ext_resource type="AudioStream" uid="uid://bhxt1cp2vt88i" path="res://audio/violin3.wav" id="26"]
+
+[sub_resource type="Gradient" id="penis_skin"]
+offsets = PackedFloat32Array(0, 0.25, 0.5, 0.75, 1)
+colors = PackedColorArray(0.3569, 0.2275, 0.1804, 1, 0.6118, 0.4196, 0.3333, 1, 0.7882, 0.6039, 0.4941, 1, 0.9098, 0.7686, 0.6588, 1, 0.9647, 0.8863, 0.8118, 1)
+
+[sub_resource type="Gradient" id="penis_flesh"]
+offsets = PackedFloat32Array(0, 0.25, 0.5, 0.75, 1)
+colors = PackedColorArray(0.3529, 0.1216, 0.1647, 1, 0.6588, 0.2627, 0.3529, 1, 0.8275, 0.4627, 0.4745, 1, 0.9412, 0.6275, 0.6588, 1, 1, 0.8157, 0.8314, 1)
+
+[sub_resource type="Gradient" id="heart_fade"]
+offsets = PackedFloat32Array(0, 0.6, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.9, 1, 1, 1, 0)
+
+[node name="AfterHours" type="Node2D" unique_id=1900231855]
+script = ExtResource("1")
+
+[node name="World" type="Node2D" parent="." unique_id=428798418]
+position = Vector2(270, 200)
+scale = Vector2(1.04, 1.04)
+
+[node name="Background" type="Sprite2D" parent="World" unique_id=1828932487]
+position = Vector2(0, -1.923077)
+texture = ExtResource("2")
+
+[node name="Rig" type="Node2D" parent="World" unique_id=1604331786]
+position = Vector2(0, 15.885)
+scale = Vector2(1.03, 1.03)
+script = ExtResource("3")
+preview_girl = "Strigoi"
+penis_type = 14
+penis_skin = SubResource("penis_skin")
+penis_flesh = SubResource("penis_flesh")
+kick = 170.0
+bounce = 1.0
+follow = 7.0
+hurt_at = 0.6
+
+[node name="Drips" type="CPUParticles2D" parent="World/Rig" unique_id=1652132519]
+emitting = false
+amount = 24
+texture = ExtResource("5")
+lifetime = 1.4
+direction = Vector2(0, 1)
+spread = 25.0
+gravity = Vector2(0, 130)
+initial_velocity_min = 5.0
+initial_velocity_max = 20.0
+scale_amount_min = 0.15
+scale_amount_max = 0.3
+color = Color(1, 0.98, 0.9, 1)
+
+[node name="Hearts" type="CPUParticles2D" parent="World/Rig" unique_id=281114078]
+emitting = false
+amount = 6
+texture = ExtResource("9")
+lifetime = 1.3
+one_shot = true
+explosiveness = 0.85
+direction = Vector2(0, -1)
+spread = 55.0
+gravity = Vector2(0, -30)
+initial_velocity_min = 40.0
+initial_velocity_max = 95.0
+angular_velocity_min = -60.0
+angular_velocity_max = 60.0
+scale_amount_min = 0.12
+scale_amount_max = 0.24
+color = Color(1, 0.55, 0.75, 1)
+color_ramp = SubResource("heart_fade")
+
+[node name="Sweat" type="Node2D" parent="World/Rig" unique_id=856047819]
+z_index = 1
+scale = Vector2(0.94, 1.01)
+script = ExtResource("17")
+
+[node name="Drop1" type="Sprite2D" parent="World/Rig/Sweat" unique_id=694983807]
+modulate = Color(1, 1, 1, 0.7973585)
+position = Vector2(-60, -45)
+texture = ExtResource("18")
+offset = Vector2(0, 2.8447566)
+
+[node name="Drop2" type="Sprite2D" parent="World/Rig/Sweat" unique_id=1415269743]
+modulate = Color(1, 1, 1, 0.37628347)
+position = Vector2(70, -30)
+texture = ExtResource("19")
+offset = Vector2(0, 5.064757)
+
+[node name="Drop3" type="Sprite2D" parent="World/Rig/Sweat" unique_id=277750590]
+modulate = Color(1, 1, 1, 0.49847817)
+position = Vector2(-95, 5)
+texture = ExtResource("19")
+offset = Vector2(0, 1.2847567)
+
+[node name="Drop4" type="Sprite2D" parent="World/Rig/Sweat" unique_id=1588388394]
+modulate = Color(1, 1, 1, 0.7722226)
+position = Vector2(100, 15)
+texture = ExtResource("18")
+offset = Vector2(0, 3.5047567)
+
+[node name="Drop5" type="Sprite2D" parent="World/Rig/Sweat" unique_id=289487858]
+modulate = Color(1, 1, 1, 0.11489497)
+position = Vector2(-30, -62)
+texture = ExtResource("18")
+offset = Vector2(0, 5.7247567)
+
+[node name="Drop6" type="Sprite2D" parent="World/Rig/Sweat" unique_id=442755234]
+modulate = Color(1, 1, 1, 0.68096197)
+position = Vector2(40, -58)
+texture = ExtResource("19")
+offset = Vector2(0, 1.9447566)
+
+[node name="SlapSparks" type="Sprite2D" parent="." unique_id=220328855]
+
+[node name="Viewport" type="SubViewport" parent="SlapSparks" unique_id=1678593772]
+own_world_3d = true
+transparent_bg = true
+size = Vector2i(400, 400)
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="SlapSparks/Viewport" unique_id=1170249849]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10)
+fov = 50.0
+
+[node name="Sparks" parent="SlapSparks/Viewport" unique_id=1689509849 instance=ExtResource("22")]
+transform = Transform3D(2.2, 0, 0, 0, 2.2, 0, 0, 0, 2.2, 0, 0, 0)
+
+[node name="Porthole" type="Node2D" parent="." unique_id=225708635]
+position = Vector2(65, 82)
+script = ExtResource("6")
+
+[node name="Heart" type="Sprite2D" parent="." unique_id=82193527]
+position = Vector2(468, 210.00002)
+scale = Vector2(0.703125, 0.703125)
+texture = ExtResource("9")
+script = ExtResource("8")
+
+[node name="HerMeter" type="Node2D" parent="Heart" unique_id=1691869268]
+position = Vector2(-20.800049, 44.799988)
+scale = Vector2(1.5999999, 1.5999999)
+script = ExtResource("15")
+
+[node name="YouMeter" type="Node2D" parent="Heart" unique_id=1635886460]
+position = Vector2(4.799988, 44.799988)
+scale = Vector2(1.5999999, 1.5999999)
+script = ExtResource("15")
+fill_color = Color(0.4, 0.65, 1, 1)
+phase = 0.8
+
+[node name="PaceGauge" type="Node2D" parent="." unique_id=381733174]
+position = Vector2(65, 188)
+script = ExtResource("16")
+
+[node name="SpeechBubble" parent="." unique_id=1611666075 instance=ExtResource("10")]
+position = Vector2(379, 134)
+scale = Vector2(0.95, 0.95)
+
+[node name="KissLayer" parent="." unique_id=454918722 instance=ExtResource("11")]
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=478106847]
+
+[node name="Hint" type="Label" parent="UI" unique_id=1463653175]
+offset_left = 8.0
+offset_top = 380.0
+offset_right = 532.0
+offset_bottom = 398.0
+theme_override_colors/font_color = Color(1, 0.9, 0.7, 0.8)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("12")
+theme_override_font_sizes/font_size = 16
+
+[node name="Choices" type="HBoxContainer" parent="UI" unique_id=1174125883]
+offset_left = 132.0
+offset_top = 316.0
+offset_right = 408.0
+offset_bottom = 375.0
+theme_override_constants/separation = 12
+
+[node name="AskButton" parent="UI" unique_id=1638676626 instance=ExtResource("13")]
+offset_left = 8.0
+offset_top = 312.0
+offset_right = 138.0
+offset_bottom = 371.0
+text = "Ask..."
+
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=2093546035]
+process_mode = 3
+stream = ExtResource("20")
+volume_db = -8.0
+autoplay = true
+
+[node name="Violin" type="AudioStreamPlayer" parent="." unique_id=615311185]
+script = ExtResource("23")
+clips = Array[AudioStream]([ExtResource("24"), ExtResource("25"), ExtResource("26")])
+
+[node name="Voice" type="AudioStreamPlayer" parent="." unique_id=714401958]
+stream = ExtResource("14")
+max_polyphony = 3
+
+[node name="ScrollMenu" parent="." unique_id=732906062 instance=ExtResource("21")]

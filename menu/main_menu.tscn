@@ -130,18 +130,25 @@ label_settings = SubResource("LabelSettings_button")
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="AfterHours" parent="Buttons" instance=ExtResource("10")]
+offset_left = 345.0
+offset_top = 220.0
+offset_right = 475.0
+offset_bottom = 279.0
+text = "After Hours"
+
 [node name="Options" parent="Buttons" unique_id=42279891 instance=ExtResource("10")]
 offset_left = 345.0
-offset_top = 225.0
+offset_top = 275.0
 offset_right = 475.0
-offset_bottom = 284.0
+offset_bottom = 334.0
 text = "Options"
 
 [node name="Quit" type="TextureButton" parent="Buttons" unique_id=898974759]
 offset_left = 345.0
-offset_top = 285.0
+offset_top = 330.0
 offset_right = 475.0
-offset_bottom = 344.0
+offset_bottom = 389.0
 texture_normal = ExtResource("7")
 ignore_texture_size = true
 stretch_mode = 0

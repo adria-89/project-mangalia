@@ -8,10 +8,17 @@
 [ext_resource type="Script" path="res://menu/ink_slider.gd" id="6"]
 [ext_resource type="Script" path="res://menu/ink_choice.gd" id="7"]
 [ext_resource type="Texture2D" path="res://assets/ui/ui_frame.png" id="8"]
+[ext_resource type="AudioStream" path="res://audio/splash_jingle.wav" id="9"]
+[ext_resource type="Shader" path="res://shaders/red_flash.gdshader" id="10"]
 
 [sub_resource type="ShaderMaterial" id="SepiaMat"]
 shader = ExtResource("2")
 shader_parameter/reveal = 0.0
+
+[sub_resource type="ShaderMaterial" id="RedFlashMat"]
+shader = ExtResource("10")
+shader_parameter/color_a = Color(0, 0, 0, 1)
+shader_parameter/color_b = Color(1, 0, 0, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_title"]
 font = ExtResource("5")
@@ -217,6 +224,22 @@ size_flags_horizontal = 3
 script = ExtResource("7")
 options = PackedStringArray("Slow", "Normal", "Fast")
 
+[node name="NSFW" type="HBoxContainer" parent="Scroll/OptionsPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/OptionsPage/NSFW"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "NSFW content"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/OptionsPage/NSFW"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("Off", "On")
+
 [node name="Fullscreen" type="HBoxContainer" parent="Scroll/OptionsPage"]
 layout_mode = 2
 
@@ -249,7 +272,376 @@ size_flags_horizontal = 3
 script = ExtResource("7")
 options = PackedStringArray("1x", "2x")
 
-[node name="Back" parent="Scroll/OptionsPage" instance=ExtResource("4")]
+[node name="Buttons" type="HBoxContainer" parent="Scroll/OptionsPage"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Back" parent="Scroll/OptionsPage/Buttons" instance=ExtResource("4")]
+layout_mode = 2
+text = "Back"
+
+[node name="NSFW" parent="Scroll/OptionsPage/Buttons" instance=ExtResource("4")]
+layout_mode = 2
+text = "NSFW..."
+
+[node name="NsfwPage" type="VBoxContainer" parent="Scroll"]
+visible = false
+layout_mode = 0
+offset_left = 205.0
+offset_top = 88.0
+offset_right = 335.0
+offset_bottom = 336.0
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="Content" parent="Scroll/NsfwPage" instance=ExtResource("4")]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Content"
+
+[node name="Play" parent="Scroll/NsfwPage" instance=ExtResource("4")]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Play"
+
+[node name="Sound" parent="Scroll/NsfwPage" instance=ExtResource("4")]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Sound"
+
+[node name="Back" parent="Scroll/NsfwPage" instance=ExtResource("4")]
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Back"
+
+[node name="ContentPage" type="VBoxContainer" parent="Scroll"]
+visible = false
+layout_mode = 0
+offset_left = 105.0
+offset_top = 88.0
+offset_right = 435.0
+offset_bottom = 336.0
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="Futa" type="HBoxContainer" parent="Scroll/ContentPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/ContentPage/Futa"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Futa"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/ContentPage/Futa"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("Off", "On")
+
+[node name="Anal" type="HBoxContainer" parent="Scroll/ContentPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/ContentPage/Anal"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Anal"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/ContentPage/Anal"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("On", "Ask only", "Off")
+
+[node name="Bulge" type="HBoxContainer" parent="Scroll/ContentPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/ContentPage/Bulge"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Belly bulge"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/ContentPage/Bulge"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("Off", "On")
+
+[node name="Forced" type="HBoxContainer" parent="Scroll/ContentPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/ContentPage/Forced"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Forced entry"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/ContentPage/Forced"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("Off", "On")
+
+[node name="Cum" type="HBoxContainer" parent="Scroll/ContentPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/ContentPage/Cum"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Cum"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/ContentPage/Cum"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("Both", "Outside", "Off")
+
+[node name="Sweat" type="HBoxContainer" parent="Scroll/ContentPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/ContentPage/Sweat"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Sweat"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/ContentPage/Sweat"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("Off", "On")
+
+[node name="Marks" type="HBoxContainer" parent="Scroll/ContentPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/ContentPage/Marks"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Slap marks"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/ContentPage/Marks"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("Off", "On")
+
+[node name="Back" parent="Scroll/ContentPage" instance=ExtResource("4")]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Back"
+
+[node name="PlayPage" type="VBoxContainer" parent="Scroll"]
+visible = false
+layout_mode = 0
+offset_left = 105.0
+offset_top = 88.0
+offset_right = 435.0
+offset_bottom = 336.0
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="Talk" type="HBoxContainer" parent="Scroll/PlayPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/PlayPage/Talk"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Her talking"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/PlayPage/Talk"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("Normal", "Less", "Silent")
+
+[node name="Difficulty" type="HBoxContainer" parent="Scroll/PlayPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/PlayPage/Difficulty"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Difficulty"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/PlayPage/Difficulty"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("Relaxed", "Normal", "Strict")
+
+[node name="Slapping" type="HBoxContainer" parent="Scroll/PlayPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/PlayPage/Slapping"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Slapping"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/PlayPage/Slapping"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("Off", "On")
+
+[node name="Endless" type="HBoxContainer" parent="Scroll/PlayPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/PlayPage/Endless"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Endless (test)"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/PlayPage/Endless"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("Off", "On")
+
+[node name="Shake" type="HBoxContainer" parent="Scroll/PlayPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/PlayPage/Shake"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Screen shake"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Choice" type="HBoxContainer" parent="Scroll/PlayPage/Shake"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+options = PackedStringArray("Off", "Normal", "Max")
+
+[node name="Back" parent="Scroll/PlayPage" instance=ExtResource("4")]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Back"
+
+[node name="SoundPage" type="VBoxContainer" parent="Scroll"]
+visible = false
+layout_mode = 0
+offset_left = 105.0
+offset_top = 88.0
+offset_right = 435.0
+offset_bottom = 336.0
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="Violin" type="HBoxContainer" parent="Scroll/SoundPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/SoundPage/Violin"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Violin"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Slider" type="Range" parent="Scroll/SoundPage/Violin"]
+custom_minimum_size = Vector2(150, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 1.0
+script = ExtResource("6")
+
+[node name="Body" type="HBoxContainer" parent="Scroll/SoundPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/SoundPage/Body"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Body sounds"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Slider" type="Range" parent="Scroll/SoundPage/Body"]
+custom_minimum_size = Vector2(150, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 1.0
+script = ExtResource("6")
+
+[node name="Voice" type="HBoxContainer" parent="Scroll/SoundPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/SoundPage/Voice"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Her voice"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Slider" type="Range" parent="Scroll/SoundPage/Voice"]
+custom_minimum_size = Vector2(150, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 1.0
+script = ExtResource("6")
+
+[node name="CabinMusic" type="HBoxContainer" parent="Scroll/SoundPage"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/SoundPage/CabinMusic"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+text = "Cabin music"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="Slider" type="Range" parent="Scroll/SoundPage/CabinMusic"]
+custom_minimum_size = Vector2(150, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 1.0
+script = ExtResource("6")
+
+[node name="Back" parent="Scroll/SoundPage" instance=ExtResource("4")]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Back"
+
+[node name="Jingle" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("9")
+bus = &"Music"
+
+[node name="RedFlash" type="CanvasLayer" parent="."]
+layer = 100
+visible = false
+
+[node name="Flash" type="ColorRect" parent="RedFlash"]
+material = SubResource("RedFlashMat")
+offset_right = 540.0
+offset_bottom = 400.0
+mouse_filter = 2

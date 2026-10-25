@@ -1,0 +1,58 @@
+[gd_scene format=3]
+
+[ext_resource type="Shader" path="res://afterhours/fx/s_multi_disolver.tres" id="1_dvpkg"]
+[ext_resource type="Texture2D" path="res://afterhours/fx/T_VFX_Noise_44xainv.png" id="2_34bbq"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vm70f"]
+render_priority = -1
+shader = ExtResource("1_dvpkg")
+shader_parameter/Use_Texture_color = false
+shader_parameter/Color = Color(4, 4, 4, 1)
+shader_parameter/Texture_Disolver = ExtResource("2_34bbq")
+
+[sub_resource type="Curve" id="Curve_o8dx5"]
+_data = [Vector2(0, 0), 0.0, 1.91648, 0, 0, Vector2(0.996825, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_etvre"]
+texture_mode = 1
+curve = SubResource("Curve_o8dx5")
+
+[sub_resource type="Curve" id="Curve_iy8f0"]
+_data = [Vector2(0, 0.490518), 0.0, 1.37038, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_ervft"]
+curve = SubResource("Curve_iy8f0")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_4mo7e"]
+particle_flag_align_y = true
+radial_velocity_min = 0.499978
+radial_velocity_max = 1.49998
+gravity = Vector3(0, 0, 0)
+scale_min = 1.5
+scale_max = 2.0
+scale_curve = SubResource("CurveTexture_ervft")
+alpha_curve = SubResource("CurveTexture_etvre")
+hue_variation_min = -1.0
+hue_variation_max = 1.0
+
+[sub_resource type="QuadMesh" id="QuadMesh_3ygg8"]
+size = Vector2(0.25, 1)
+center_offset = Vector3(0, 0.4, 0)
+
+[node name="mini_explosion_2" type="Node3D" unique_id=1512403047]
+
+[node name="streaks" type="GPUParticles3D" parent="." unique_id=1507183142]
+material_override = SubResource("ShaderMaterial_vm70f")
+cast_shadow = 0
+emitting = false
+amount = 6
+lifetime = 0.3
+one_shot = true
+explosiveness = 0.9
+local_coords = true
+randomness = 1.0
+fixed_fps = 60
+process_material = SubResource("ParticleProcessMaterial_4mo7e")
+draw_pass_1 = SubResource("QuadMesh_3ygg8")

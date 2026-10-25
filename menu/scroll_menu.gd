@@ -5,6 +5,9 @@ extends CanvasLayer
 ## to three tones of sepia; then the framed picture squishes down onto a black
 ## background with a slight random tilt, and the paper scroll spins in on top
 ## (spinning-newspaper style). Esc or Resume plays it all backwards.
+## With NSFW content on, the options page has an NSFW button: After Hours'
+## own settings on three pages (content, play, sound). Esc or Back steps
+## back a page at a time.
 ## The main menu opens it straight on the options page, without pausing.
 
 const MAIN_MENU_SCENE := "res://menu/main_menu.tscn"
@@ -45,12 +48,39 @@ const TICK_SOUND: AudioStream = preload("res://audio/dialogue_tick.wav")
 @onready var _pause_page: Control = $Scroll/PausePage
 @onready var _options_page: Control = $Scroll/OptionsPage
 @onready var _window_scale: Node = $Scroll/OptionsPage/WindowScale/Choice
+@onready var _nsfw_button: Control = $Scroll/OptionsPage/Buttons/NSFW
+@onready var _nsfw_page: Control = $Scroll/NsfwPage
+@onready var _content_page: Control = $Scroll/ContentPage
+@onready var _play_page: Control = $Scroll/PlayPage
+@onready var _sound_page: Control = $Scroll/SoundPage
+## Every page, its title, and the page Back (or Esc) goes to (null: the
+## options page's own back, see _on_back()).
+@onready var _pages := {
+	_pause_page: ["Paused", null],
+	_options_page: ["Options", null],
+	_nsfw_page: ["NSFW", _options_page],
+	_content_page: ["Content", _nsfw_page],
+	_play_page: ["Play", _nsfw_page],
+	_sound_page: ["Sound", _nsfw_page],
+}
+## Plays when NSFW content is switched on.
+@onready var _jingle: AudioStreamPlayer = $Jingle
+## Switching NSFW on also floods the screen red (Mechsodus's pause screen,
+## shaders/red_flash.gdshader) and fades it out over this long.
+@export var red_flash_time: float = 1.4
+@onready var _red_flash: CanvasLayer = $RedFlash
+@onready var _red_flash_rect: ColorRect = $RedFlash/Flash
+var _red_flash_tween: Tween
 
 var _open := false
 var _busy := false
 ## Opened with Esc in-game (Back returns to the pause page and closing unpauses).
 var _from_pause := false
 var _sound: AudioStreamPlayer
+## The menu always has the cursor. What the game wanted (After Hours hides
+## it: the penis is the cursor) is kept here and put back when it closes.
+var _cursor_on := false
+var _game_mouse := Input.MOUSE_MODE_VISIBLE
 
 func _ready() -> void:
 	_sound = AudioStreamPlayer.new()
@@ -60,14 +90,30 @@ func _ready() -> void:
 	$Scroll/PausePage/Options.pressed.connect(_show_page.bind(_options_page))
 	$Scroll/PausePage/MainMenu.pressed.connect(_on_main_menu)
 	$Scroll/PausePage/Quit.pressed.connect(get_tree().quit)
-	$Scroll/OptionsPage/Back.pressed.connect(_on_back)
+	$Scroll/OptionsPage/Buttons/Back.pressed.connect(_on_back)
+	_nsfw_button.pressed.connect(_show_page.bind(_nsfw_page))
+	$Scroll/NsfwPage/Content.pressed.connect(_show_page.bind(_content_page))
+	$Scroll/NsfwPage/Play.pressed.connect(_show_page.bind(_play_page))
+	$Scroll/NsfwPage/Sound.pressed.connect(_show_page.bind(_sound_page))
+	for page: Control in [_nsfw_page, _content_page, _play_page, _sound_page]:
+		page.get_node("Back").pressed.connect(_show_page.bind(_pages[page][1]))
 	_init_options()
+
+## While it's open, the game may still try to hide the cursor (timers run
+## through a pause): it stays, and that's what goes back on close.
+func _process(_delta: float) -> void:
+	if _cursor_on and Input.mouse_mode != Input.MOUSE_MODE_VISIBLE:
+		_game_mouse = Input.mouse_mode
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("ui_cancel"):
 		return
 	if _open:
-		if _options_page.visible:
+		var back: Control = _pages[_current_page()][1]
+		if back:
+			_show_page(back)
+		elif _options_page.visible:
 			_on_back()
 		else:
 			close()
@@ -99,6 +145,8 @@ func close() -> void:
 		return
 	Settings.save()
 	await _spin(false)
+	_cursor_on = false
+	Input.mouse_mode = _game_mouse
 	if _from_pause:
 		get_tree().paused = false
 
@@ -107,6 +155,10 @@ func close() -> void:
 ## over the live menu.
 func _spin(opening: bool) -> void:
 	_busy = true
+	if opening and not _cursor_on:
+		_cursor_on = true
+		_game_mouse = Input.mouse_mode
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	var framed := _from_pause
 	if opening:
 		# Black in picture mode, see-through otherwise (it still blocks clicks).
@@ -172,7 +224,7 @@ func _show_page(page: Control) -> void:
 	if _busy:
 		return
 	_busy = true
-	var current := _options_page if _options_page.visible else _pause_page
+	var current := _current_page()
 	var tween := create_tween()
 	tween.tween_property(current, "modulate:a", 0.0, page_fade_time)
 	tween.tween_callback(_set_page.bind(page))
@@ -181,10 +233,16 @@ func _show_page(page: Control) -> void:
 	_busy = false
 
 func _set_page(page: Control) -> void:
-	_pause_page.visible = page == _pause_page
-	_options_page.visible = page == _options_page
+	for each: Control in _pages:
+		each.visible = each == page
 	page.modulate.a = 1.0
-	_title.text = "Options" if page == _options_page else "Paused"
+	_title.text = _pages[page][0]
+
+func _current_page() -> Control:
+	for page: Control in _pages:
+		if page.visible:
+			return page
+	return _pause_page
 
 func _on_back() -> void:
 	Settings.save()
@@ -223,6 +281,21 @@ func _init_options() -> void:
 		Settings.text_speed = index
 		_play(TICK_SOUND, 1.2))
 
+	var nsfw: Node = $Scroll/OptionsPage/NSFW/Choice
+	nsfw.index = 1 if Settings.nsfw else 0
+	nsfw.changed.connect(func(index: int) -> void:
+		Settings.set_nsfw(index == 1)
+		_nsfw_button.visible = Settings.nsfw
+		if Settings.nsfw:
+			_jingle.play()
+			_flash_red()
+		else:
+			_jingle.stop()
+			_play(TICK_SOUND, 1.2))
+
+	_nsfw_button.visible = Settings.nsfw
+	_init_nsfw()
+
 	var fullscreen: Node = $Scroll/OptionsPage/Fullscreen/Choice
 	fullscreen.index = 1 if Settings.fullscreen else 0
 	fullscreen.changed.connect(func(index: int) -> void:
@@ -238,6 +311,38 @@ func _init_options() -> void:
 	_window_scale.changed.connect(func(index: int) -> void:
 		Settings.set_window_scale(index + 1)
 		_play(TICK_SOUND, 1.2))
+
+## The NSFW pages: each row's choice is the setting's index (Off/On rows: 0/1).
+func _init_nsfw() -> void:
+	var choices := {
+		"ContentPage/Futa": "futa", "ContentPage/Anal": "anal", "ContentPage/Bulge": "bulge",
+		"ContentPage/Forced": "forced", "ContentPage/Cum": "cum", "ContentPage/Sweat": "sweat",
+		"ContentPage/Marks": "marks",
+		"PlayPage/Talk": "talk", "PlayPage/Difficulty": "difficulty", "PlayPage/Slapping": "slapping",
+		"PlayPage/Endless": "endless", "PlayPage/Shake": "shake",
+	}
+	for row: String in choices:
+		var key: String = choices[row]
+		var choice: Node = get_node("Scroll/%s/Choice" % row)
+		var on_off: bool = Settings.get(key) is bool
+		choice.index = int(Settings.get(key))
+		choice.changed.connect(func(index: int) -> void:
+			Settings.set(key, index == 1 if on_off else index)
+			_play(TICK_SOUND, 1.2))
+	for bus: StringName in [&"Violin", &"Body", &"Voice", &"CabinMusic"]:
+		var slider: Range = get_node("Scroll/SoundPage/%s/Slider" % bus)
+		slider.value = Settings.volumes[bus]
+		slider.value_changed.connect(func(value: float) -> void: Settings.set_volume(bus, value))
+
+## The screen goes red in an instant, then fades back.
+func _flash_red() -> void:
+	if _red_flash_tween:
+		_red_flash_tween.kill()
+	_red_flash.visible = true
+	_red_flash_rect.modulate.a = 1.0
+	_red_flash_tween = create_tween()
+	_red_flash_tween.tween_property(_red_flash_rect, "modulate:a", 0.0, red_flash_time).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_red_flash_tween.tween_callback(func() -> void: _red_flash.visible = false)
 
 func _play(stream: AudioStream, pitch: float) -> void:
 	_sound.stream = stream

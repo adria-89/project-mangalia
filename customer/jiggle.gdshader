@@ -23,7 +23,8 @@ uniform float lights_out : hint_range(0.0, 1.0) = 0.0;
 uniform float blink : hint_range(0.0, 1.0) = 0.0;
 // 1 = the current face has its eyes drawn shut, so nothing should glow.
 uniform float eyes_shut : hint_range(0.0, 1.0) = 0.0;
-// Blush overlay (same canvas as the sprite), faded in by blush_amount.
+// Blush overlay (same canvas as the sprite), faded in by blush_amount. It
+// sits over her, so it may go past her outline.
 uniform sampler2D blush_tex : filter_nearest;
 uniform float blush_amount : hint_range(0.0, 1.0) = 0.0;
 // Nervous (anime gloom): a blue gradient pours down from the top of the
@@ -49,6 +50,17 @@ uniform float drunk_time = 0.0;
 uniform float drunk_waves = 1.3;
 uniform float drunk_speed = 1.8;
 
+// top over base, top faded to amount (a normal "over", so an overlay shows
+// past the base's outline too).
+vec4 over(vec4 base, vec4 top, float amount) {
+	float a = top.a * amount;
+	float out_a = a + base.a * (1.0 - a);
+	if (out_a <= 0.0) {
+		return vec4(base.rgb, 0.0);
+	}
+	return vec4((top.rgb * a + base.rgb * base.a * (1.0 - a)) / out_a, out_a);
+}
+
 void fragment() {
 	float weight = texture(jiggle_mask, UV).r * texture(jiggle_mask, UV).a;
 	vec2 uv = UV;
@@ -65,17 +77,14 @@ void fragment() {
 	uv -= spring_offset * weight * TEXTURE_PIXEL_SIZE;
 	vec4 color = texture(TEXTURE, uv);
 	if (blush_amount > 0.0) {
-		vec4 b = texture(blush_tex, uv);
-		color.rgb = mix(color.rgb, b.rgb, b.a * blush_amount);
+		color = over(color, texture(blush_tex, uv), blush_amount);
 	}
 	if (nervous_amount > 0.0) {
 		float edge = nervous_reveal * (nervous_depth + 0.15);
 		float covered = 1.0 - smoothstep(edge - 0.15, edge, UV.y);
 		float fade = 1.0 - smoothstep(0.0, nervous_depth, UV.y);
 		color.rgb = mix(color.rgb, nervous_color.rgb, covered * fade * nervous_strength * nervous_amount);
-		vec4 n = texture(nervous_tex, uv);
-		color.rgb = mix(color.rgb, n.rgb, n.a * nervous_amount);
-		color.a = max(color.a, n.a * nervous_amount);
+		color = over(color, texture(nervous_tex, uv), nervous_amount);
 	}
 	if (front_only) {
 		// Use the mask at the sampled spot so the cut-out moves with the chest.

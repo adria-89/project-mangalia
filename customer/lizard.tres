@@ -10,12 +10,70 @@
 [ext_resource type="Texture2D" uid="uid://uffh5lq5lnhw" path="res://assets/chars/lizard/lizard_blush.png" id="8"]
 [ext_resource type="Texture2D" uid="uid://2otheq8kpbgk" path="res://assets/chars/lizard/lizard_eyes_wink.png" id="9"]
 [ext_resource type="Texture2D" uid="uid://ct4nwx4oh57aw" path="res://assets/chars/lizard/lizard_nervous.png" id="10"]
+[ext_resource type="Script" uid="uid://d07ss36memggp" path="res://afterhours/afterhours_girl.gd" id="after_hours_script"]
 [ext_resource type="Script" uid="uid://cov1cib5bp6gu" path="res://props/recipe.gd" id="r0"]
 [ext_resource type="Resource" path="res://props/recipes/beer.tres" id="r_beer"]
 [ext_resource type="Resource" path="res://props/recipes/cola.tres" id="r_cola"]
 [ext_resource type="Resource" path="res://props/recipes/mangaliene.tres" id="r_mangaliene"]
 [ext_resource type="Resource" uid="uid://clrcg8wpa1qhx" path="res://props/recipes/motorina.tres" id="r_motorina"]
 [ext_resource type="Resource" path="res://props/recipes/prenadez.tres" id="r_prenadez"]
+
+[sub_resource type="Gradient" id="AfterHours_flesh"]
+offsets = PackedFloat32Array(0, 0.25, 0.5, 0.75, 1)
+colors = PackedColorArray(0.3529, 0.1216, 0.1647, 1, 0.6588, 0.2627, 0.3529, 1, 0.8275, 0.4627, 0.4745, 1, 0.9412, 0.6275, 0.6588, 1, 1, 0.8157, 0.8314, 1)
+
+[sub_resource type="Gradient" id="AfterHours_skin"]
+offsets = PackedFloat32Array(0, 0.2, 0.4, 0.6, 0.8, 1)
+colors = PackedColorArray(0.1843, 0.2471, 0.1333, 1, 0.3137, 0.4157, 0.2157, 1, 0.4902, 0.5804, 0.2588, 1, 0.6157, 0.6745, 0.2902, 1, 0.7294, 0.7686, 0.3451, 1, 0.8745, 0.8784, 0.4784, 1)
+
+[sub_resource type="Resource" id="AfterHours"]
+script = ExtResource("after_hours_script")
+skin_ramp = SubResource("AfterHours_skin")
+flesh_ramp = SubResource("AfterHours_flesh")
+skin_detail = 34
+anus_type = 2
+pubic_hair = 4
+tail_type = 23
+butt_damping = 10.0
+butt_size = Vector2(1.025, 1.005)
+leg_angle = 22.0
+pace = PackedFloat32Array(1, 1.4, 1.9, 2.4)
+pace_tolerance = 0.4
+touchiness = 0.7
+likes_deep = 0.9
+lines = Dictionary[String, PackedStringArray]({
+"after": PackedStringArray("We should do inventory more often.", "I can\'t feel my tail. Worth it."),
+"all_in": PackedStringArray("ALL of it?! ...Okay. OKAY.", "Every inch! I salute you, captain!"),
+"angry_stop": PackedStringArray("Okay, I\'m done! Shoo!", "Nope! Out! Ship\'s closed!"),
+"ask_no": PackedStringArray("Not tonight! Next tide, maybe.", "Nope! Ask me later!"),
+"ask_yes": PackedStringArray("...Okay. Yes! Go slow there.", "Aye aye. Carefully!"),
+"deep": PackedStringArray("Whoa, DEEP! Keep it there!", "Oh that\'s DEEP. Yes!"),
+"edge": PackedStringArray("Where are you gonna... decide fast!"),
+"forced": PackedStringArray("OW! I said NO!", "Stop! That HURTS, you jerk!"),
+"futa_after": PackedStringArray("Now we BOTH need a mop.", "Best inventory ever. Both of us."),
+"futa_her_cum": PackedStringArray("AHH! I\'m firing BOTH barrels!", "Whoa, it\'s going everywhere! Sorry, deck!"),
+"futa_start": PackedStringArray("Surprise! I\'ve got a little extra. Back door only tonight!", "Don\'t mind the cannon. Ahoy back there!"),
+"good": PackedStringArray("THAT\'S the stuff!", "You\'re hired. By me."),
+"her_cum": PackedStringArray("AHHH! OHHH! ...Wow.", "I\'m gonna... CAPSIZE! AHH!"),
+"insert": PackedStringArray("OH. Hi! Hello!", "Ahoy! ...Sorry. Reflex."),
+"inside": PackedStringArray("OHHH. That\'s the stuff!", "Yes! Fill the hold!"),
+"left_early": PackedStringArray("You\'re LEAVING? Now?!", "Did I do something wrong?"),
+"not_yet": PackedStringArray("Already?! I was SO close!", "Hey! I didn\'t get to finish!"),
+"outside": PackedStringArray("Aww. All over my scales?", "Hey! I wanted that!"),
+"pushed": PackedStringArray("I SAID NO. Don\'t make me bite!"),
+"respected": PackedStringArray("You listened. That\'s really nice.\n...Forget I said that."),
+"slap": PackedStringArray("WHOA! Again!", "Aye, captain!"),
+"slap_red": PackedStringArray("Handprint for a week!"),
+"slip": PackedStringArray("You fell out! Get back here!", "Man overboard!"),
+"stage_1": PackedStringArray("Faster, sailor!", "Yes! Full steam!"),
+"stage_2": PackedStringArray("Don\'t you DARE slow down!", "This beats shells!"),
+"stage_3": PackedStringArray("I\'m gonna capsize!", "Keep going keep going!"),
+"start": PackedStringArray("Ahoy back there! ...Is the door locked?", "Okay! I\'m ready! Probably!"),
+"too_deep": PackedStringArray("Easy! That\'s the bottom!"),
+"too_fast": PackedStringArray("Whoa! I\'m not a bilge pump!", "Storm warning! Easy!"),
+"too_slow": PackedStringArray("Are we docking or sinking?", "Hello? Did you fall asleep?"),
+"wrong_hole": PackedStringArray("WHOA. Wrong door, captain!", "Ask first! It\'s polite!")
+})
 
 [sub_resource type="Resource" id="Set_crab"]
 script = ExtResource("4")
@@ -78,3 +136,4 @@ face_kiss = ExtResource("7")
 face_wink = ExtResource("9")
 blush = ExtResource("8")
 nervous = ExtResource("10")
+after_hours = SubResource("AfterHours")

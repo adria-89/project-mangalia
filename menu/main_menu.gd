@@ -5,6 +5,7 @@ extends Node2D
 ## back waves, the tug (its own transparent 3D view), front waves.
 
 const GAME_SCENE := "res://main.tscn"
+const AFTER_HOURS_SCENE := "res://afterhours/afterhours.tscn"
 const MUSIC: AudioStreamWAV = preload("res://audio/music/main_menu_loop.wav")
 const BOING_SOUND: AudioStream = preload("res://audio/boing.wav")
 const HOP_GRAVITY := 30.0 # 3D units/s²
@@ -30,6 +31,7 @@ const HOP_GRAVITY := 30.0 # 3D units/s²
 @onready var _tug_model: Node3D = $ShipViewport/TugPivot/Tugboat
 @onready var _ship_viewport: SubViewport = $ShipViewport
 @onready var _play: TextureButton = $Buttons/Play
+@onready var _after_hours: TextureButton = $Buttons/AfterHours
 @onready var _quit: TextureButton = $Buttons/Quit
 @onready var _options: TextureButton = $Buttons/Options
 @onready var _options_menu: CanvasLayer = $ScrollMenu
@@ -53,7 +55,10 @@ func _ready() -> void:
 	($SkyDisplay as Sprite2D).texture = ($SkyViewport as SubViewport).get_texture()
 	($ShipDisplay as Sprite2D).texture = ($ShipViewport as SubViewport).get_texture()
 	_tug_base_y = _tug.position.y
-	_play.pressed.connect(_on_play)
+	_play.pressed.connect(_on_play.bind(GAME_SCENE))
+	_after_hours.pressed.connect(_on_after_hours)
+	_show_after_hours(Settings.nsfw)
+	Settings.nsfw_changed.connect(_show_after_hours)
 	_quit.pressed.connect(get_tree().quit)
 	_options.pressed.connect(_options_menu.open_options)
 	# Loop the whole file seamlessly (the import has looping off).
@@ -114,9 +119,25 @@ func _update_squash(delta: float) -> void:
 			_hop_velocity = 0.0
 			_squash_velocity -= click_squash # splash back down
 
-func _on_play() -> void:
+func _on_play(scene: String) -> void:
 	# Fade the music out under the transition instead of cutting it.
 	create_tween().tween_property(_music, "volume_db", -40.0, 0.8)
 	# A beat so the press clack and squash read before the scene changes.
 	await get_tree().create_timer(0.15).timeout
-	Transition.change_scene(GAME_SCENE)
+	Transition.change_scene(scene)
+
+## After Hours only shows with NSFW content on. Hidden, the buttons under it
+## move up into its place (each into the slot of the one above, as laid out
+## in the scene), so there's no gap.
+func _show_after_hours(on: bool) -> void:
+	if not _after_hours.has_meta("slot"):
+		for button: Control in [_after_hours, _options, _quit]:
+			button.set_meta("slot", button.position)
+	_after_hours.visible = on
+	_options.position = _options.get_meta("slot") if on else _after_hours.get_meta("slot")
+	_quit.position = _quit.get_meta("slot") if on else _options.get_meta("slot")
+
+## Straight to after hours: she's picked there, and leaving comes back here.
+func _on_after_hours() -> void:
+	AfterHoursScene.return_scene = scene_file_path
+	_on_play(AFTER_HOURS_SCENE)

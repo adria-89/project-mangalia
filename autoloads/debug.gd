@@ -21,6 +21,7 @@ M  +20 lei
 [ ]  night - / +
 N  end the day
 T  tap drink
+A  after hours (Shift: Striggy)
 R  restart"""
 
 ## Debug keys and the overlay work at all (later: unlocked by a secret code).

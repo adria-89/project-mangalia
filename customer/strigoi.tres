@@ -5,12 +5,81 @@
 [ext_resource type="Texture2D" uid="uid://dcata3exfx3x4" path="res://assets/chars/foid_placeholder4_mask.png" id="3"]
 [ext_resource type="Script" uid="uid://dbc5py7jp16ic" path="res://customer/dialogue_set.gd" id="4"]
 [ext_resource type="Texture2D" uid="uid://bjwes3f4vuw1g" path="res://assets/chars/foid_placeholder4_mask_eyes.png" id="5"]
+[ext_resource type="Script" uid="uid://d07ss36memggp" path="res://afterhours/afterhours_girl.gd" id="after_hours_script"]
 [ext_resource type="Script" uid="uid://cov1cib5bp6gu" path="res://props/recipe.gd" id="r0"]
 [ext_resource type="Resource" path="res://props/recipes/cola.tres" id="r_cola"]
 [ext_resource type="Resource" path="res://props/recipes/cuba_libre.tres" id="r_cuba_libre"]
-[ext_resource type="Resource" path="res://props/recipes/rum.tres" id="r_rum"]
-[ext_resource type="Resource" path="res://props/recipes/prenadez.tres" id="r_prenadez"]
 [ext_resource type="Resource" path="res://props/recipes/mangaliene.tres" id="r_mangaliene"]
+[ext_resource type="Resource" path="res://props/recipes/prenadez.tres" id="r_prenadez"]
+[ext_resource type="Resource" path="res://props/recipes/rum.tres" id="r_rum"]
+
+[sub_resource type="Gradient" id="AfterHours_flesh"]
+offsets = PackedFloat32Array(0, 0.25, 0.5, 0.75, 1)
+colors = PackedColorArray(0.2392, 0.0588, 0.1216, 1, 0.4863, 0.1412, 0.251, 1, 0.7216, 0.2706, 0.4157, 1, 0.8784, 0.4784, 0.5961, 1, 0.9569, 0.6902, 0.7686, 1)
+
+[sub_resource type="Gradient" id="AfterHours_hair"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.55, 0.52, 0.58, 1, 0.85, 0.83, 0.88, 1, 1, 1, 1, 1)
+
+[sub_resource type="Gradient" id="AfterHours_skin"]
+offsets = PackedFloat32Array(0, 0.27941176, 0.625, 1)
+colors = PackedColorArray(0.2275, 0.0392, 0.0549, 1, 0.4784, 0.0824, 0.0941, 1, 0.7098, 0.1569, 0.1216, 1, 0.8471, 0.2667, 0.1843, 1)
+
+[sub_resource type="Gradient" id="AfterHours_tail"]
+offsets = PackedFloat32Array(0, 0.3333, 0.6667, 1)
+colors = PackedColorArray(0.0392, 0.0392, 0.0471, 1, 0.1098, 0.1098, 0.1333, 1, 0.2039, 0.2039, 0.2431, 1, 0.3333, 0.3333, 0.4157, 1)
+
+[sub_resource type="Resource" id="AfterHours"]
+script = ExtResource("after_hours_script")
+skin_ramp = SubResource("AfterHours_skin")
+flesh_ramp = SubResource("AfterHours_flesh")
+anus_type = 5
+pubic_hair = 10
+hair_ramp = SubResource("AfterHours_hair")
+tail_type = 4
+tail_ramp = SubResource("AfterHours_tail")
+butt_stiffness = 170.0
+butt_damping = 12.0
+butt_size = Vector2(0.94, 1.01)
+legs_size = Vector2(0.62, 0.865)
+leg_angle = 22.0
+outfit = 139
+pace = PackedFloat32Array(0.6, 0.8, 1, 1.3)
+pace_tolerance = 0.3
+touchiness = 1.4
+anal = 2
+likes_deep = 0.2
+lines = Dictionary[String, PackedStringArray]({
+"after": PackedStringArray("Scariest thing I\'ve ever done.", "Can I come back tomorrow?"),
+"all_in": PackedStringArray("I-it\'s ALL in?! How?!"),
+"angry_stop": PackedStringArray("I\'m sorry, I can\'t. G-goodnight.", "Stop. Please. I want to go."),
+"deep": PackedStringArray("S-so deep... mmh...", "It\'s all the way... in..."),
+"edge": PackedStringArray("W-where do you...?! Hurry!"),
+"forced": PackedStringArray("N-no! It hurts! Stop!", "I said no... please..."),
+"futa_after": PackedStringArray("I made such a mess... sorry...", "Was that okay? Even with... that?"),
+"futa_her_cum": PackedStringArray("Ah! I-it\'s... everywhere! Sorry!", "MORTAL! It\'s... ah!"),
+"futa_start": PackedStringArray("D-don\'t stare at it! It\'s a demon thing!", "B-back there is... fine. Please be gentle."),
+"good": PackedStringArray("Mmh... good.", "Y-you\'re good at this."),
+"her_cum": PackedStringArray("Ah! Ah! I-I\'m...! Mmh!", "MORTAAAL!"),
+"insert": PackedStringArray("Eep! ...S-sorry. Keep going.", "Oh. Oh my."),
+"inside": PackedStringArray("Ah! It\'s so warm! ...Was that rude?", "D-delicious. Like the blood of... um."),
+"left_early": PackedStringArray("Oh. Was I bad at it?", "W-wait, where are you going?"),
+"not_yet": PackedStringArray("Oh. That\'s... it? Okay...", "I was almost... never mind."),
+"outside": PackedStringArray("Oh! It\'s everywhere. B-but thank you!"),
+"pushed": PackedStringArray("I said no. I\'m leaving."),
+"respected": PackedStringArray("Thank you for being careful."),
+"slap": PackedStringArray("Eep!", "M-mortal!"),
+"slap_red": PackedStringArray("I bruise easily...!"),
+"slip": PackedStringArray("Oh! It fell out. Sorry!", "Eep! Come back."),
+"stage_1": PackedStringArray("That\'s... nice. Very nice.", "S-slowly. Like that."),
+"stage_2": PackedStringArray("I feel w-warm. Is that normal?", "Don\'t stop. P-please."),
+"stage_3": PackedStringArray("I think I\'m going to... ah!", "M-mortal! MORTAL!"),
+"start": PackedStringArray("M-mortal! I am... ready. I think.", "F-first time doing this. Be nice."),
+"too_deep": PackedStringArray("T-too deep! Too deep!", "Ah! That\'s too far!"),
+"too_fast": PackedStringArray("T-too fast! Please!", "S-slow down or I\'ll curse you!"),
+"too_slow": PackedStringArray("Um... you can go a bit more.", "D-did you stop?"),
+"wrong_hole": PackedStringArray("N-not THERE! I\'ll curse you. A small one.", "Wrong... that\'s the wrong one!")
+})
 
 [sub_resource type="Resource" id="Set_returned"]
 script = ExtResource("4")
@@ -57,8 +126,8 @@ hated = ExtResource("r_rum")
 hated_line = "R-RUM?! It smells like a church! Take it away!"
 wont_try = Array[ExtResource("r0")]([ExtResource("r_prenadez"), ExtResource("r_mangaliene")])
 order_lines = {
-"Cuba Libre": "A C-Cuba Libre, please! I'm feeling... brave tonight.",
 "Beer": "M-maybe a beer? Everyone says it's very... um. Mortal.",
+"Cuba Libre": "A C-Cuba Libre, please! I'm feeling... brave tonight.",
 "Motorină": "A Motorină, please? The lizard says it's fuel. D-do demons need fuel?"
 }
 other_happy_lines = PackedStringArray("Ooh, a really g-good {drink}! Thank you!")
@@ -73,3 +142,4 @@ jiggle_stiffness = 230.0
 jiggle_damping = 9.0
 jiggle_inertia = 0.6
 jiggle_max = 3.0
+after_hours = SubResource("AfterHours")

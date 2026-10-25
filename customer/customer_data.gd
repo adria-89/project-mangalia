@@ -100,3 +100,8 @@ enum Bust { SMALL, MEDIUM, LARGE }
 ## Transparent overlay (same canvas): sweat drops etc. for when she gets
 ## nervous (a broken tankard, a bad beer). The blue gloom works without it.
 @export var nervous: Texture2D
+
+@export_group("After Hours")
+## Her after-hours scene: body, tastes and lines (afterhours/afterhours_girl.gd).
+## Empty = she doesn't stay after closing.
+@export var after_hours: AfterHoursGirl
