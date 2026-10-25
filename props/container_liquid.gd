@@ -245,8 +245,9 @@ func axis_local() -> Vector3:
 func add(amount: float, drink: Drink = null, gentleness: float = 0.5) -> float:
 	if drink == null:
 		drink = default_drink
-	if fill <= 0.002:
-		_layers.clear() # fresh pour
+	# Not a fill threshold: at a high frame rate each frame's pour is smaller
+	# than any, and clearing here would throw it away every frame.
+	if _layers.is_empty(): # fresh pour (_set_fill clears a drained one's dregs)
 		spilled_total = 0.0
 		foam = 0.0
 		foam_color = drink.foam_color
@@ -499,7 +500,8 @@ func _set_fill(value: float) -> void:
 				for drink: Drink in top:
 					top[drink] *= (amount - take) / amount
 				take = 0.0
-		if _total() < 0.0005:
+		# Drained to dregs: empty, so the next pour starts fresh (see add).
+		if _total() <= 0.002:
 			_layers.clear()
 	elif value > current:
 		if _layers.is_empty() or current <= 0.0:
