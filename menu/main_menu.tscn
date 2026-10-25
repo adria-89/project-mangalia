@@ -167,5 +167,12 @@ label_settings = SubResource("LabelSettings_button")
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="SaveFolder" parent="." instance=ExtResource("10")]
+offset_left = 8.0
+offset_top = 336.0
+offset_right = 138.0
+offset_bottom = 395.0
+text = "Save Folder"
+
 [node name="ScrollMenu" parent="." unique_id=2143041972 instance=ExtResource("11")]
 pausable = false

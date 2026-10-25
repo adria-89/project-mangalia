@@ -104,6 +104,8 @@ const SMASHES: Array[AudioStream] = [
 @onready var _clink: AudioStreamPlayer = $Clink
 @onready var _props: Node = get_node(bar_props_path)
 
+## Put away until the bar serves its drink (main.gd sets it): it won't come out.
+var locked := false
 var _shown := false
 var _tween: Tween
 var _hide_timer := 0.0
@@ -242,8 +244,8 @@ func _throw(slot: Dictionary) -> void:
 func _update_tray(delta: float) -> void:
 	var over_span := _mouse.x > crate_span.x and _mouse.x < crate_span.y
 	var crate_rect := Rect2(crate_span.x, top_y + position.y, crate_span.y - crate_span.x, 400.0)
-	var wanted := (over_span and _mouse.y > 400.0 - hover_zone_height) \
-		or (_shown and crate_rect.has_point(_mouse)) or not _carried.is_empty()
+	var wanted := not locked and ((over_span and _mouse.y > 400.0 - hover_zone_height) \
+		or (_shown and crate_rect.has_point(_mouse)) or not _carried.is_empty())
 	if wanted:
 		_hide_timer = hide_delay
 		if not _shown:

@@ -102,7 +102,7 @@ texture = ExtResource("2")
 mask = ExtResource("3")
 eyes_mask = ExtResource("5")
 mouth = Vector2(80, 112)
-lines = PackedStringArray("Ahoy! You\'re not the big guy.", "You\'re alot prettier than that thing!", "Don\'t tell him I was here~", "...So? Are you pouring one or what?")
+lines = PackedStringArray("Ahoy! You\'re not the big guy.", "He left YOU the bar? Ha! Okay.", "What\'s that? You don\'t know how to serve a lady?", "Alright, alright, here\'s how it goes,", "Tap\'s on the left. Go to the edge, it slides out.", "Drag the Tankard under it and pour one out!", "The flow depends on how hard you drag.", "Then set it down in front of me. Don\'t spill! I\'ll know!")
 extra_sets = Array[ExtResource("4")]([SubResource("Set_crab"), SubResource("Set_boot"), SubResource("Set_shells"), SubResource("Set_messi")])
 order_line = "One beer! Big one! Biggest one!"
 happy_lines = PackedStringArray("OHHH. That\'s the stuff. You\'re hired. By me.", "Beautiful. I\'m crying. It\'s the beer.")
@@ -126,6 +126,12 @@ other_meh_lines = PackedStringArray("Bit sad for a {drink}, but I\'ll drink anyt
 other_angry_lines = PackedStringArray("Did you pour this {drink} with your feet?")
 wrong_drink_line = "Huh? That's not what I asked for. ...Is it a surprise?"
 muddy_line = "Where are the LAYERS? It's just brown!"
+color = Color(0.55, 0.75, 0.25, 1)
+head_region = Rect2(30, 0, 130, 130)
+lessons = Dictionary[String, PackedStringArray]({
+"Mangaliene": PackedStringArray("Okay. OKAY. Big night. The big guy\'s special.", "Cola at the bottom. Then beer. Then rum on top.", "Pour every one GENTLY. A trickle! Or the layers mix!", "He always wants one when he comes back. ALWAYS.", "Make me a Mangaliene! Practice on me!"),
+"Motorină": PackedStringArray("Ooh, new stuff tonight!", "That crate you brought? COLA. Click a bottle, tip it down to pour.", "Beer first, then cola on top. Pour it hard, it mixes.", "That\'s a Motorină! Like the boat drinks! Fuel me up!")
+})
 voice_pitch = 1.25
 jiggle_stiffness = 110.0
 jiggle_damping = 4.5

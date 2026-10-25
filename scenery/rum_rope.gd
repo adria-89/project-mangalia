@@ -142,6 +142,8 @@ static var _knot_texture: ImageTexture
 @onready var _props: Node = get_node(bar_props_path)
 @onready var _tap: Node = get_node_or_null(tap_path)
 
+## Put away until the bar serves its drink (main.gd sets it): it won't come out.
+var locked := false
 var _shown := false
 var _tween: Tween
 var _hide_timer := 0.0
@@ -346,8 +348,8 @@ func _update_reveal(delta: float) -> void:
 		_knock_aside()
 	_tap_was_out = tap_out
 	var busy := not _carried.is_empty() or _slots.any(func(s: Dictionary) -> bool: return s.thrown)
-	var wanted := busy or (not tap_out and ((near_anchor and screen_mouse.y < hover_zone_height) \
-		or (_shown and _over_any(40.0)) or _slots.any(func(s: Dictionary) -> bool: return s.returning)))
+	var wanted := not locked and (busy or (not tap_out and ((near_anchor and screen_mouse.y < hover_zone_height) \
+		or (_shown and _over_any(40.0)) or _slots.any(func(s: Dictionary) -> bool: return s.returning))))
 	if wanted:
 		_hide_timer = hide_delay
 		if not _shown:

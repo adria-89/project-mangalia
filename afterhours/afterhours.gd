@@ -198,6 +198,9 @@ func _ready() -> void:
 	for node: CanvasItem in [_rig, _porthole, _heart, _gauge, _ask_button, _her_meter, _you_meter]:
 		node.visible = false
 	_choices.visible = false
+	Debug.all_girls_changed.connect(func() -> void:
+		if _state == State.PICK:
+			_pick())
 	if next_girl:
 		character = next_girl
 		next_girl = null
@@ -210,14 +213,18 @@ func _exit_tree() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	return_scene = BAR_SCENE
 
-## Who's staying after closing?
+## Who's staying after closing? Only the girls whose bar you've filled
+## (SaveManager.after_hours), or all of them with the debug G toggle.
 func _pick() -> void:
 	_state = State.PICK
 	_hint.text = "Who's staying after closing?   Esc menu"
 	var picks: Array = []
 	var girls := AfterHoursGirl.all()
 	for girl_name: String in girls:
-		picks.append([girl_name, girls[girl_name]])
+		if SaveManager.stays_after_hours(girls[girl_name]):
+			picks.append([girl_name, girls[girl_name]])
+	if picks.is_empty():
+		_hint.text = "Nobody's staying yet. Win a girl over first.   Esc menu"
 	_show_choices(picks, func(option: CustomerData) -> void:
 		character = option
 		_start())

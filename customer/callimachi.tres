@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="CustomerData" format=3 uid="uid://dofb3hlmqh7fl"]
+
+[ext_resource type="Script" uid="uid://dqax1q7e38by4" path="res://customer/customer_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://cov1cib5bp6gu" path="res://props/recipe.gd" id="1_oit6g"]
+[ext_resource type="Texture2D" uid="uid://dg28x0ab05yc4" path="res://assets/chars/callamachi.png" id="2"]
+[ext_resource type="Script" uid="uid://dbc5py7jp16ic" path="res://customer/dialogue_set.gd" id="2_66f70"]
+[ext_resource type="Texture2D" uid="uid://cyhxcpuwyvw1p" path="res://assets/chars/callamachi_mask.png" id="3"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Callimachi"
+texture = ExtResource("2")
+mask = ExtResource("3")
+mouth = Vector2(205, 88)
+lines = PackedStringArray("Ah. The errand boy. Splendid.", "Put the crate down. No, not there, you nitwit.", "Fate has sent you to me boy. I have an important task fo you.", "Callimachi Barbaru has business ashore. Family business.", "You will mind my bar and keep the girls company.", "I\'ll be off now, make sure no pretty lady complains.", "Touch the till and I feed you to the sea.", "I\'ll be back in five minutes.")
+happy_lines = PackedStringArray("Now THAT is a beer.")
+meh_lines = PackedStringArray("...It\'ll do.")
+angry_lines = PackedStringArray("Are you joking? Half of it is on the counter.")
+other_happy_lines = PackedStringArray("Now THAT is a {drink}.")
+other_meh_lines = PackedStringArray("...It\'ll do, for a {drink}.")
+other_angry_lines = PackedStringArray("You call this a {drink}?")
+voice_pitch = 0.6
+text_speed = 0.9
+bust = 2
+jiggle_stiffness = 60.0
+jiggle_damping = 3.5
+jiggle_inertia = 1.6
+jiggle_max = 10.0

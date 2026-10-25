@@ -122,6 +122,28 @@ text = "Main Menu"
 layout_mode = 2
 text = "Quit"
 
+[node name="StartPage" type="VBoxContainer" parent="Scroll"]
+visible = false
+layout_mode = 0
+offset_left = 205.0
+offset_top = 88.0
+offset_right = 335.0
+offset_bottom = 336.0
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="Continue" parent="Scroll/StartPage" instance=ExtResource("4")]
+layout_mode = 2
+text = "Continue"
+
+[node name="NewGame" parent="Scroll/StartPage" instance=ExtResource("4")]
+layout_mode = 2
+text = "New Game"
+
+[node name="Back" parent="Scroll/StartPage" instance=ExtResource("4")]
+layout_mode = 2
+text = "Back"
+
 [node name="OptionsPage" type="VBoxContainer" parent="Scroll"]
 visible = false
 layout_mode = 0

@@ -12,6 +12,10 @@ extends Node2D
 ## (customer/lizard.tres, cat.tres, strigoi.tres); expand them under
 ## Customers in the Inspector of the Main node to edit.
 ##
+## Night 0 opens with the boss (Intro > boss): he says his piece, leaves you
+## the bar and walks out. New drinks are taught by the girls (CustomerData >
+## Lessons): nobody orders one before its teacher has.
+##
 ## Controls: drag the tankard, hover the left edge for the tap, click a
 ## customer to poke her, click elsewhere / Space to advance dialogue,
 ## F1 for the debug overlay and its keys (autoloads/debug.gd).
@@ -51,6 +55,16 @@ const DRINK_STYLES := {
 ## walk in with the debug P toggle, ticked or not.
 @export_flags("Lizard", "Cat", "Strigoi") var arriving: int = 1
 @export var enter_x: float = -140.0
+## Opens the first day: sits down, says his lines (no order), leaves you the
+## bar and walks out. The clock waits for him. Empty = straight to the girls.
+@export var boss: CustomerData = preload("res://customer/callimachi.tres")
+## The cola crate and the rum bundle stay put away until a drink with theirs
+## in it can be ordered (unlocked and taught).
+@export var crate_drink: Drink = preload("res://props/drinks/cola.tres")
+@export var rope_drink: Drink = preload("res://props/drinks/rum.tres")
+## How hard he backhands a drink you push at him mid-speech (3D units/second).
+## It usually flies off the end; that tankard isn't on your bill.
+@export var swat_speed: float = 12.0
 ## Real seconds the clock takes to go from the start of the day to night.
 @export var day_seconds: float = 120.0
 ## How far into the day (0..1) the sky starts turning to night.
@@ -123,6 +137,19 @@ const DRINK_STYLES := {
 @export var perfect_layers: float = 0.9
 ## Bonus lei that fly out of the kiss.
 @export var kiss_bonus: int = 2
+@export_group("Affection")
+## What each girl's bar holds (shown on the night card). Full = she'd ask you
+## to stay after closing.
+@export var affection_max: float = 10.0
+## Per drink, by how she took it: a ȘUKAR! (the kiss), happy, meh, angry.
+@export var affection_perfect: float = 2.0
+@export var affection_happy: float = 1.0
+@export var affection_meh: float = 0.0
+@export var affection_angry: float = -1.0
+## Extra when it was her favorite and she liked it.
+@export var affection_favorite: float = 0.5
+## Extra (on top of angry) when you served the one she hates.
+@export var affection_hated: float = -1.0
 @export_group("")
 ## Lei per tankard that fell off the counter, paid on the night's receipt.
 @export var broken_tankard_cost: int = 2
@@ -175,6 +202,16 @@ var _drunk := {}
 var _order: Recipe
 ## What each regular ordered last (keyed by CustomerData).
 var _last_order := {}
+## Names of the drinks the girls have taught you so far (see CustomerData.lessons).
+var _taught := {}
+## Each girl you've met: her affection (0..affection_max), and what it was
+## when the day started (the night card fills her bar from there).
+var _affection := {}
+var _affection_start := {}
+## The last drink judged was the one she hates.
+var _got_hated := false
+## Tankards the boss knocked away (see _swat()).
+var _swatted := {}
 
 func _ready() -> void:
 	_bubble.line_started.connect(_on_line_started)
@@ -185,9 +222,16 @@ func _ready() -> void:
 	_coins.collected.connect(_money.fly_coin)
 	_music.finished.connect(_music.play) # placeholder track: just loop it
 	_tally.resize(Rating.size())
+	_load_run()
 	Sea.strength = _sea_tonight()
 	Debug.info = _debug_info
-	_spawn(_next_arriving(-1))
+	_update_stations()
+	if boss != null and not SaveManager.intro_seen:
+		_day_running = false
+		_add_customer(boss)
+		_next_index = _next_arriving(-1)
+	else:
+		_spawn(_next_arriving(-1))
 
 func _process(delta: float) -> void:
 	_update_pending_serve(delta)
@@ -216,18 +260,59 @@ func _end_day() -> void:
 	var broken_cost := _broken * broken_tankard_cost
 	var left: int = _money.money - drinks - fuel - broken_cost
 	_card.blacked_out.connect(_reset_bar, CONNECT_ONE_SHOT)
-	await _card.play(night, _tally_text(), earned, drinks, fuel, _broken, broken_cost, left)
+	await _card.play(night, _tally_text(), earned, drinks, fuel, _broken, broken_cost, left, _affection_rows())
+	_affection_start = _affection.duplicate()
 	if left < 0:
-		# Still under the waves from the night card: start over behind them.
+		# Still under the waves from the night card: back to this morning's save behind them.
+		SaveManager.load_game()
 		Transition.reload_scene()
 		return
 	_money.set_money(left)
 	night += 1
+	_update_stations()
 	_day_time = 0.0
 	_day_start_money = left
+	_save_run()
 	_clock.show_progress(0.0)
 	get_tree().paused = false
 	_day_running = true
+
+## The day starts from SaveManager's run: the night, the money, each girl's
+## affection and talk so far, and what the girls have taught.
+func _load_run() -> void:
+	night = SaveManager.night
+	_money.set_money(SaveManager.money)
+	_day_start_money = SaveManager.money
+	for data in customers:
+		var id := SaveManager.id_of(data)
+		if SaveManager.affection.has(id):
+			_affection[data] = SaveManager.affection[id]
+		if SaveManager.visits.has(id):
+			_visits[data] = SaveManager.visits[id]
+		if SaveManager.last_set.has(id):
+			_last_set[data] = SaveManager.last_set[id]
+	_affection_start = _affection.duplicate()
+	for drink_name in SaveManager.taught:
+		_taught[drink_name] = true
+
+## A new morning: the run so far goes into a fresh save.
+func _save_run() -> void:
+	SaveManager.night = night
+	SaveManager.money = _money.money
+	SaveManager.intro_seen = true # every morning comes after his speech
+	SaveManager.affection.clear()
+	SaveManager.visits.clear()
+	SaveManager.last_set.clear()
+	for data: CustomerData in _affection:
+		SaveManager.affection[SaveManager.id_of(data)] = _affection[data]
+		if _affection[data] >= affection_max:
+			SaveManager.win_over(data)
+	for data: CustomerData in _visits:
+		SaveManager.visits[SaveManager.id_of(data)] = _visits[data]
+	for data: CustomerData in _last_set:
+		SaveManager.last_set[SaveManager.id_of(data)] = _last_set[data]
+	SaveManager.taught.assign(_taught.keys())
+	SaveManager.save_game()
 
 ## Today's drinks for the night card, e.g. "2 ȘUKAR!  1 meh...". Only
 ## ratings that happened are listed.
@@ -237,6 +322,31 @@ func _tally_text() -> String:
 		if _tally[rating] > 0:
 			parts.append("%d %s" % [_tally[rating], RATING_STYLES[rating][0]])
 	return "  ".join(parts) if not parts.is_empty() else "No drinks served"
+
+## A row per girl met so far, in list order, for the night card: her head,
+## her color, and her bar at the start and end of today (0..1).
+func _affection_rows() -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	for data in customers:
+		if _affection.has(data):
+			rows.append({
+				"head": data.head(),
+				"color": data.color,
+				"from": _affection_start.get(data, 0.0) / affection_max,
+				"to": _affection[data] / affection_max,
+			})
+	return rows
+
+## How she took the drink moves her affection (see Affection in the inspector).
+func _add_affection(data: CustomerData, perfect: bool, favorite: bool) -> void:
+	var change: float = [affection_angry, affection_meh, affection_happy][_mood]
+	if perfect:
+		change = affection_perfect
+	if favorite and _mood == Mood.HAPPY:
+		change += affection_favorite
+	if _got_hated:
+		change += affection_hated
+	_affection[data] = clampf(_affection.get(data, 0.0) + change, 0.0, affection_max)
 
 ## Closing time: the lantern flickers and fades out (you can still play
 ## meanwhile), then everything freezes where it is. All black except the sea
@@ -281,6 +391,11 @@ func _reset_bar() -> void:
 	_spawn(_next_arriving(-1))
 
 func _spawn(index: int) -> void:
+	_add_customer(customers[index])
+	_next_index = _next_arriving(index)
+
+## Clears the counter of whoever was there and sends this one walking in.
+func _add_customer(data: CustomerData) -> void:
 	_bubble.stop()
 	if is_instance_valid(_served_item):
 		_props.lower_from_drink(_served_item) # if she was mid-drink
@@ -288,32 +403,41 @@ func _spawn(index: int) -> void:
 	_served_item = null
 	_pending_serve = null
 	_drink_done = true
+	if _is_boss(_customer):
+		_day_running = true # a debug key called someone in over him
 	if is_instance_valid(_customer):
 		_customer.queue_free()
 	var customer := CUSTOMER_SCENE.instantiate()
-	customer.data = customers[index]
-	customer.drunk = _drunk.get(customers[index], 0.0)
-	customer.position.x = enter_x
+	customer.data = data
+	customer.drunk = _drunk.get(data, 0.0)
+	# Wide ones (the boss) start further out, so they don't pop in on screen.
+	customer.position.x = minf(enter_x, -data.texture.get_width() / 2.0 * customer.display_scale)
 	customer.seated.connect(_on_customer_seated.bind(customer))
 	customer.left.connect(_on_customer_left.bind(customer))
 	customer.slammed.connect(_on_slammed.bind(customer))
 	add_child(customer)
 	move_child(customer, $Counter.get_index())
 	_customer = customer
-	_next_index = _next_arriving(index)
 	_phase = Phase.ARRIVING
 
-## The next customer after index (in list order, wrapping) that's ticked in
-## arriving; the same one again if she's the only one.
+## The next customer after index (in list order, wrapping) that walks in on
+## her own; the same one again if she's the only one.
 func _next_arriving(index: int) -> int:
 	for i in range(1, customers.size() + 1):
 		var next := posmod(index + i, customers.size())
-		if customers[next].placeholder:
-			if Debug.placeholders:
-				return next
-		elif arriving == 0 or arriving & (1 << next):
+		if _walks_in(next):
 			return next
 	return posmod(index + 1, customers.size())
+
+## Ticked in arriving (or none are), and not on placeholder art unless the
+## debug P toggle lets those in.
+func _walks_in(index: int) -> bool:
+	if customers[index].placeholder:
+		return Debug.placeholders
+	return arriving == 0 or arriving & (1 << index)
+
+func _is_boss(customer: Node2D) -> bool:
+	return is_instance_valid(customer) and boss != null and customer.data == boss
 
 func _on_customer_seated(customer: Node2D) -> void:
 	await get_tree().create_timer(0.5).timeout
@@ -321,12 +445,25 @@ func _on_customer_seated(customer: Node2D) -> void:
 		return
 	_phase = Phase.TALKING
 	var data: CustomerData = customer.data
+	if _is_boss(customer):
+		_bubble.start(data.lines, data.voice_pitch, data.text_speed)
+		return
+	if not _affection.has(data):
+		_affection[data] = 0.0 # met her: she gets a row on the night card
 	_bubble.start(_pick_dialogue(data), data.voice_pitch, data.text_speed, true)
 
-## Small talk + order for this visit. Set 0 is her first-visit talk, then her
+## Small talk + order for this visit. A drink she still has to teach you comes
+## first (its lesson lines). Otherwise set 0 is her first-visit talk, then her
 ## extra sets; each is used once in order, after that random, never repeating
 ## the last one.
 func _pick_dialogue(data: CustomerData) -> PackedStringArray:
+	var lesson := _next_lesson(data)
+	if lesson != null:
+		_taught[lesson.name] = true
+		_update_stations() # she's about to point at it
+		_order = lesson
+		_last_order[data] = lesson
+		return data.lessons[lesson.name].duplicate()
 	var count := 1 + data.extra_sets.size()
 	var visit: int = _visits.get(data, 0)
 	_visits[data] = visit + 1
@@ -399,8 +536,39 @@ func _roll_order(data: CustomerData) -> Recipe:
 func _favorite(data: CustomerData) -> Recipe:
 	return data.favorite if data.favorite != null else default_recipe
 
+## On the menu by tonight, and taught if anyone who walks in teaches it.
 func _is_unlocked(recipe: Recipe) -> bool:
+	return _on_menu(recipe) and not _needs_lesson(recipe)
+
+func _on_menu(recipe: Recipe) -> bool:
 	return Debug.unlock_all or recipe.unlock_night <= night
+
+## Not taught yet, and its teacher walks in (one who doesn't can't hold it back).
+func _needs_lesson(recipe: Recipe) -> bool:
+	if _taught.has(recipe.name):
+		return false
+	for i in customers.size():
+		if customers[i].lessons.has(recipe.name) and _walks_in(i):
+			return true
+	return false
+
+## Brings out the crate / the rum once something with cola / rum can be ordered.
+func _update_stations() -> void:
+	$BottleRail.locked = not _serves(crate_drink)
+	$RumRope.locked = not _serves(rope_drink)
+
+func _serves(drink: Drink) -> bool:
+	for recipe in menu:
+		if drink in recipe.drinks and _is_unlocked(recipe):
+			return true
+	return false
+
+## The first drink on the menu tonight that she has yet to teach, or null.
+func _next_lesson(data: CustomerData) -> Recipe:
+	for recipe in menu:
+		if data.lessons.has(recipe.name) and not _taught.has(recipe.name) and _on_menu(recipe):
+			return recipe
+	return null
 
 func _unlocked(recipes: Array[Recipe], data: CustomerData) -> Array[Recipe]:
 	var result: Array[Recipe] = []
@@ -415,14 +583,20 @@ func _on_line_started(_index: int) -> void:
 
 ## She has ordered: now wait for a drink (one may already be in front of her).
 func _on_last_line_shown() -> void:
-	if _phase != Phase.TALKING:
+	if _phase != Phase.TALKING or _is_boss(_customer):
 		return
 	_phase = Phase.WAITING
 	for item: Node3D in _props.items():
 		_on_item_settled(item)
 
 func _on_item_settled(item: Node3D) -> void:
-	if _phase != Phase.WAITING or _props.liquid_of(item) == null:
+	if _props.liquid_of(item) == null:
+		return
+	if _is_boss(_customer) and _customer.is_seated() and _props.placed_by_hand(item) \
+			and _in_front_of_customer(item):
+		_swat(item, _customer)
+		return
+	if _phase != Phase.WAITING:
 		return
 	# Only what you set down yourself: not a glass the sea slid over to her.
 	if _props.placed_by_hand(item) and _in_front_of_customer(item):
@@ -446,8 +620,23 @@ func _update_pending_serve(delta: float) -> void:
 
 ## A tankard fell off the end of the counter and smashed: a jolt of the view
 ## (the shards and the new tankard are BarProps' job); it's paid at night.
-func _on_item_broke(_item: Node3D, _at: Vector2) -> void:
-	_broken += 1
+## A drink pushed at the boss mid-speech: he stomps and backhands it down the
+## counter (it may well fly off the end and smash).
+func _swat(item: Node3D, boss_node: Node2D) -> void:
+	await get_tree().create_timer(0.25).timeout
+	if boss_node != _customer or not is_instance_valid(item) or _props.is_held(item):
+		return
+	boss_node.react(Mood.ANGRY)
+	boss_node.nervous()
+	var from: Vector3 = _props.counter_position(item)
+	var her: Vector3 = _props.counter_point(Vector2(boss_node.position.x, 270.0))
+	var side := 1.0 if from.x >= her.x else -1.0
+	_swatted[item] = true
+	_props.push(item, Vector3(side * swat_speed, 0.0, 0.0), set_aside_friction * 0.3)
+
+func _on_item_broke(item: Node3D, _at: Vector2) -> void:
+	if not _swatted.erase(item): # the boss's doing isn't yours to pay
+		_broken += 1
 	_ship_view.shake(break_shake_pixels, break_shake_seconds)
 	if is_instance_valid(_customer) and _customer.is_seated():
 		_customer.nervous()
@@ -485,6 +674,7 @@ func _serve(item: Node3D) -> void:
 	if perfect:
 		_rating = Rating.PERFECT
 		_customer.wink() # instead of the happy squint
+	_add_affection(data, perfect, order == _favorite(data))
 	_tally[_rating] += 1
 	var style: Array = RATING_STYLES[_rating]
 	_kisses.shout(style[0], style[1], style[2])
@@ -609,6 +799,7 @@ func _on_slammed(strength: float, customer: Node2D) -> void:
 func _judge(liquid: Node, order: Recipe, data: CustomerData) -> String:
 	var fill: float = liquid.fill / order.fill
 	var spilled: float = liquid.spilled_total
+	_got_hated = false
 	if fill < 0.05:
 		_mood = Mood.ANGRY
 		_rating = Rating.EMPTY
@@ -618,6 +809,7 @@ func _judge(liquid: Node, order: Recipe, data: CustomerData) -> String:
 	if data.hated != null and data.hated != order and data.hated.difference(mix) < close_mix:
 		_mood = Mood.ANGRY
 		_rating = Rating.BAD
+		_got_hated = true
 		return data.hated_line
 	if off > wrong_mix:
 		_mood = Mood.ANGRY
@@ -682,6 +874,10 @@ func _layer_quality(liquid: Node, order: Recipe) -> float:
 func _on_dialogue_finished() -> void:
 	if _phase == Phase.REACTING:
 		_tip_and_leave()
+	elif _phase == Phase.TALKING and _is_boss(_customer):
+		# "Five minutes." He's off; the day starts once he's out the door.
+		_phase = Phase.LEAVING
+		_customer.stand_up()
 
 func _tip_and_leave() -> void:
 	_phase = Phase.LEAVING
@@ -711,6 +907,9 @@ func _tip_and_leave() -> void:
 
 func _on_customer_left(customer: Node2D) -> void:
 	if customer == _customer:
+		if _is_boss(customer):
+			_day_running = true
+			_swatted.clear() # ones that stayed on the counter count again
 		_spawn(_next_index)
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -735,6 +934,7 @@ func _debug_key(keycode: Key) -> void:
 				Debug.note("Called " + customers[index].display_name)
 		KEY_P:
 			Debug.placeholders = not Debug.placeholders
+			_update_stations()
 			Debug.note("Placeholder customers walk in: %s" % _on_off(Debug.placeholders))
 			if is_instance_valid(_customer):
 				_next_index = _next_arriving(customers.find(_customer.data))
@@ -748,6 +948,7 @@ func _debug_key(keycode: Key) -> void:
 			Debug.note("Next drink perfect: %s" % _on_off(Debug.force_perfect))
 		KEY_U:
 			Debug.unlock_all = not Debug.unlock_all
+			_update_stations()
 			Debug.note("Every drink unlocked: %s" % _on_off(Debug.unlock_all))
 		KEY_S:
 			# auto -> 0 -> 1 -> 2 -> auto
@@ -758,6 +959,7 @@ func _debug_key(keycode: Key) -> void:
 			Debug.note("+20 lei")
 		KEY_BRACKETLEFT, KEY_BRACKETRIGHT:
 			night = maxi(night + (1 if keycode == KEY_BRACKETRIGHT else -1), 0)
+			_update_stations()
 			Debug.note("Night %d" % night)
 		KEY_N:
 			_day_time = day_seconds

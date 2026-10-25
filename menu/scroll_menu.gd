@@ -8,7 +8,12 @@ extends CanvasLayer
 ## With NSFW content on, the options page has an NSFW button: After Hours'
 ## own settings on three pages (content, play, sound). Esc or Back steps
 ## back a page at a time.
-## The main menu opens it straight on the options page, without pausing.
+## The main menu opens it straight on the options page, without pausing, or
+## on the start page (Continue / New Game) when Play is pressed with a save.
+
+## Start page buttons (the main menu acts on them).
+signal continue_pressed
+signal new_game_pressed
 
 const MAIN_MENU_SCENE := "res://menu/main_menu.tscn"
 const SPIN_SOUND: AudioStream = preload("res://audio/boing.wav")
@@ -53,6 +58,8 @@ const TICK_SOUND: AudioStream = preload("res://audio/dialogue_tick.wav")
 @onready var _content_page: Control = $Scroll/ContentPage
 @onready var _play_page: Control = $Scroll/PlayPage
 @onready var _sound_page: Control = $Scroll/SoundPage
+## Main menu, with a save on disk: Continue / New Game (see open_start()).
+@onready var _start_page: Control = $Scroll/StartPage
 ## Every page, its title, and the page Back (or Esc) goes to (null: the
 ## options page's own back, see _on_back()).
 @onready var _pages := {
@@ -62,6 +69,7 @@ const TICK_SOUND: AudioStream = preload("res://audio/dialogue_tick.wav")
 	_content_page: ["Content", _nsfw_page],
 	_play_page: ["Play", _nsfw_page],
 	_sound_page: ["Sound", _nsfw_page],
+	_start_page: ["Play", null],
 }
 ## Plays when NSFW content is switched on.
 @onready var _jingle: AudioStreamPlayer = $Jingle
@@ -95,6 +103,9 @@ func _ready() -> void:
 	$Scroll/NsfwPage/Content.pressed.connect(_show_page.bind(_content_page))
 	$Scroll/NsfwPage/Play.pressed.connect(_show_page.bind(_play_page))
 	$Scroll/NsfwPage/Sound.pressed.connect(_show_page.bind(_sound_page))
+	$Scroll/StartPage/Continue.pressed.connect(continue_pressed.emit)
+	$Scroll/StartPage/NewGame.pressed.connect(new_game_pressed.emit)
+	$Scroll/StartPage/Back.pressed.connect(close)
 	for page: Control in [_nsfw_page, _content_page, _play_page, _sound_page]:
 		page.get_node("Back").pressed.connect(_show_page.bind(_pages[page][1]))
 	_init_options()
@@ -130,6 +141,14 @@ func open_pause() -> void:
 	get_tree().paused = true
 	_from_pause = true
 	_set_page(_pause_page)
+	_spin(true)
+
+## Spin in on the start page (main menu, when there's a save to continue).
+func open_start() -> void:
+	if _open or _busy:
+		return
+	_from_pause = false
+	_set_page(_start_page)
 	_spin(true)
 
 ## Spin in on the options page (main menu), the game keeps running behind.

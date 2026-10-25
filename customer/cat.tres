@@ -98,7 +98,7 @@ mask = ExtResource("3")
 eyes_mask = ExtResource("5")
 mouth = Vector2(122, 112)
 placeholder = true
-lines = PackedStringArray("Where\'s the walrus.", "Don\'t smile at me. I can hear you smiling.", "...Fine. Once. Then stop.", "Rum. In a clean glass. If you have one.", "You don\'t have one, do you.")
+lines = PackedStringArray("Where\'s the toad.", "Don\'t smile at me. I can hear you smiling.", "...Fine. Once. Then stop.", "Rum. In a clean glass. If you have one.", "You don\'t have one, do you.")
 extra_sets = Array[ExtResource("4")]([SubResource("Set_again"), SubResource("Set_club"), SubResource("Set_pig"), SubResource("Set_neighbor")])
 order_line = "Beer. Full. Don't make me ask twice."
 happy_lines = PackedStringArray("...Fine. That\'s acceptable.")
@@ -121,6 +121,13 @@ other_meh_lines = PackedStringArray("I\'ve had worse {drink}s. At funerals.")
 other_angry_lines = PackedStringArray("This {drink} is an insult to my ancestors.")
 wrong_drink_line = "That is not what I ordered. Try listening."
 off_mix_line = "Who taught you to mix. Nobody, clearly."
+color = Color(0.62, 0.2, 0.3, 1)
+head_region = Rect2(38, 0, 135, 135)
+lessons = Dictionary[String, PackedStringArray]({
+"Cuba Libre": PackedStringArray("Rum and cola. Mixed. Pour it hard, nobody cares.", "Even you can\'t ruin it.", "Cuba Libre. Go."),
+"Prenadez": PackedStringArray("Beer first. Then rum, floated on top.", "Gently. A trickle. It floats if you don\'t drown it.", "Named after some ancient glue. Don\'t think about it.", "A Prenadez. Don\'t make it muddy."),
+"Rum": PackedStringArray("...You\'re still here.", "The rum is up top. On the rope, by the porthole. Reach up, it comes down.", "Pull a bottle out, tip it. A shot is a little. Stop early.", "Rum. A shot. If you overpour it, I\'m not paying for the extra.")
+})
 voice_pitch = 0.8
 jiggle_stiffness = 190.0
 jiggle_damping = 8.0

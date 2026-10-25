@@ -165,6 +165,8 @@ func _ready() -> void:
 	_hiccup_sound = AudioStreamPlayer.new()
 	add_child(_hiccup_sound)
 	_reset_hiccup_timer()
+	# Wide ones (the boss) walk out further, or they'd vanish while still on screen.
+	exit_x = maxf(exit_x, get_viewport_rect().size.x + data.texture.get_width() / 2.0 * display_scale)
 	_chest_anchor = Vector2(chest.x - data.texture.get_width() / 2.0, chest.y - height)
 	# Pivot is the sprite's bottom edge; place it so the chest bottom sits on the counter.
 	_seated_y = rest_line - _chest_anchor.y * display_scale

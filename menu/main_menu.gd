@@ -1,7 +1,7 @@
 extends Node2D
 
 ## Main menu: a toon steam tug rocking among the waves (left), the title
-## (top right) and the scroll buttons under it. Layers, back to front: sky,
+## (top right) and the scroll buttons under it; Save Folder in the bottom left. Layers, back to front: sky,
 ## back waves, the tug (its own transparent 3D view), front waves.
 
 const GAME_SCENE := "res://main.tscn"
@@ -35,6 +35,8 @@ const HOP_GRAVITY := 30.0 # 3D units/s²
 @onready var _quit: TextureButton = $Buttons/Quit
 @onready var _options: TextureButton = $Buttons/Options
 @onready var _options_menu: CanvasLayer = $ScrollMenu
+## Bottom left: opens the folder with the .prenadez saves.
+@onready var _save_folder: TextureButton = $SaveFolder
 
 var _time := 0.0
 var _tug_base_y := 0.0
@@ -55,7 +57,10 @@ func _ready() -> void:
 	($SkyDisplay as Sprite2D).texture = ($SkyViewport as SubViewport).get_texture()
 	($ShipDisplay as Sprite2D).texture = ($ShipViewport as SubViewport).get_texture()
 	_tug_base_y = _tug.position.y
-	_play.pressed.connect(_on_play.bind(GAME_SCENE))
+	_play.pressed.connect(_on_play_pressed)
+	_options_menu.continue_pressed.connect(_on_continue)
+	_options_menu.new_game_pressed.connect(_on_new_game)
+	_save_folder.pressed.connect(SaveManager.open_folder)
 	_after_hours.pressed.connect(_on_after_hours)
 	_show_after_hours(Settings.nsfw)
 	Settings.nsfw_changed.connect(_show_after_hours)
@@ -118,6 +123,22 @@ func _update_squash(delta: float) -> void:
 			_hop = 0.0
 			_hop_velocity = 0.0
 			_squash_velocity -= click_squash # splash back down
+
+## No save yet: straight into a new game. Otherwise the scroll asks:
+## Continue or New Game.
+func _on_play_pressed() -> void:
+	if SaveManager.has_save():
+		_options_menu.open_start()
+	else:
+		_on_new_game()
+
+func _on_continue() -> void:
+	if SaveManager.load_game():
+		_on_play(GAME_SCENE)
+
+func _on_new_game() -> void:
+	SaveManager.new_game()
+	_on_play(GAME_SCENE)
 
 func _on_play(scene: String) -> void:
 	# Fade the music out under the transition instead of cutting it.

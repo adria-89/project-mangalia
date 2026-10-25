@@ -24,6 +24,7 @@ Settings="*res://autoloads/settings.gd"
 Sea="*res://autoloads/sea.gd"
 Transition="*res://autoloads/transition.gd"
 Debug="*res://autoloads/debug.gd"
+SaveManager="*res://autoloads/save_manager.gd"
 
 [display]
 

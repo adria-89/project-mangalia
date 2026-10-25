@@ -68,6 +68,21 @@ extends Resource
 ## The mix is off (too much of one thing).
 @export var off_mix_line: String = "Something's off with the mix."
 
+@export_group("Affection")
+## Her bar on the night card is filled with this.
+@export var color := Color(0.9, 0.55, 0.65)
+## Her head on the night card: this square of her texture (pixels), shrunk.
+@export var head_region := Rect2(30, 0, 140, 140)
+## A drawn head icon instead of the cut-out above. Optional.
+@export var head_icon: Texture2D
+
+@export_group("Lessons")
+## Drinks she teaches you, by recipe name: the first time she comes in once
+## one is unlocked, she orders it with these lines instead of her small talk
+## (the last one is the order and stays up until the drink arrives). Until
+## she has, nobody else orders it.
+@export var lessons: Dictionary[String, PackedStringArray] = {}
+
 @export_group("Voice")
 ## Base pitch of the dialogue tick for this character.
 @export var voice_pitch: float = 1.0
@@ -105,3 +120,13 @@ enum Bust { SMALL, MEDIUM, LARGE }
 ## Her after-hours scene: body, tastes and lines (afterhours/afterhours_girl.gd).
 ## Empty = she doesn't stay after closing.
 @export var after_hours: AfterHoursGirl
+
+## Her head for the night card: head_icon if there is one, else head_region
+## cut out of her texture.
+func head() -> Texture2D:
+	if head_icon != null:
+		return head_icon
+	var atlas := AtlasTexture.new()
+	atlas.atlas = texture
+	atlas.region = head_region
+	return atlas

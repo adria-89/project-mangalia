@@ -22,6 +22,7 @@ M  +20 lei
 N  end the day
 T  tap drink
 A  after hours (Shift: Striggy)
+G  every girl in After Hours (anywhere)
 R  restart"""
 
 ## Debug keys and the overlay work at all (later: unlocked by a secret code).
@@ -37,6 +38,11 @@ var placeholders := false
 var force_perfect := false
 ## Fixed sea strength instead of tonight's (S); negative = auto.
 var sea := -1.0
+## After Hours offers every girl, not just the ones you've won over (G, works
+## in any scene).
+var all_girls := false
+
+signal all_girls_changed
 
 ## Returns the live info text; the bar sets it while it's loaded.
 var info := Callable()
@@ -87,6 +93,11 @@ func _input(event: InputEvent) -> void:
 			and event.keycode == KEY_F1:
 		open = not open
 		_panel.visible = open
+		get_viewport().set_input_as_handled()
+	elif key(event) and event.keycode == KEY_G:
+		all_girls = not all_girls
+		note("Every girl in After Hours: %s" % ("ON" if all_girls else "off"))
+		all_girls_changed.emit()
 		get_viewport().set_input_as_handled()
 
 func _process(_delta: float) -> void:
